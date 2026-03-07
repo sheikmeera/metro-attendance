@@ -11,8 +11,11 @@ exports.login = async (req, res) => {
     try {
         const { identifier, password } = req.body
         if (!identifier || !password) {
+            console.log('[Auth] Login attempt failed: Missing identifier/password')
             return res.status(400).json({ error: 'Identifier and password are required.' })
         }
+
+        console.log(`[Auth] Attempting login for: ${identifier}`)
 
         let user = null
         let role = null
@@ -34,8 +37,11 @@ exports.login = async (req, res) => {
         }
 
         if (!user) {
+            console.log(`[Auth] User not found or invalid PIN: ${identifier}`)
             return res.status(401).json({ error: 'Invalid credentials. Please try again.' })
         }
+
+        console.log(`[Auth] Login successful: ${user.name} (${role})`)
 
         const payload = {
             id: user.id || user._id, // Ensure id is a string

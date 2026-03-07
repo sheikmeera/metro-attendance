@@ -17,6 +17,13 @@ app.use(cors({ origin: '*' }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// ── Request Logger ──────────────────────────────────────────
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`)
+    if (req.method !== 'GET') console.log('Body:', JSON.stringify(req.body, null, 2))
+    next()
+})
+
 // ── Static: serve uploaded images ──────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
