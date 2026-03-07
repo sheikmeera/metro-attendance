@@ -1,0 +1,92 @@
+/* ── UserReport ── */
+.site-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.site-option:hover {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: var(--glass-hover);
+}
+
+.site-option.selected {
+    border-color: var(--brand-primary);
+    background: rgba(245, 158, 11, 0.08);
+}
+
+.radio-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--text-muted);
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.radio-dot.checked {
+    border-color: var(--brand-primary);
+    background: var(--brand-primary);
+}
+
+.photo-upload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    border: 2px dashed var(--glass-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.photo-upload-btn:hover {
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+    background: rgba(245, 158, 11, 0.06);
+}
+
+/* ── Step pills ── */
+.step-pill {
+    padding: 0.3rem 0.75rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--glass-bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.step-pill.active {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: var(--brand-primary);
+    color: var(--brand-primary);
+}
+
+@media (max-width: 600px) {
+    .site-option {
+        padding: 0.75rem 0.875rem;
+    }
+
+    .photo-upload-btn {
+        padding: 1rem;
+        font-size: 0.85rem;
+    }
+
+    .step-pill {
+        padding: 0.25rem 0.6rem;
+        font-size: 0.7rem;
+    }
+}

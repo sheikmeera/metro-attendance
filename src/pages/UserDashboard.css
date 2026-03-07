@@ -1,0 +1,422 @@
+/* ── User Dashboard ── */
+.page-shell {
+    padding: 2rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.page-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Greeting */
+.greeting-section {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.greeting-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.2rem;
+}
+
+.greeting-name {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.greeting-avatar {
+    font-size: 1.5rem;
+}
+
+.greeting-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.clock-display {
+    text-align: right;
+}
+
+.clock-time {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, #f59e0b, #fde68a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.clock-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.1rem;
+}
+
+/* Attendance Hero Card */
+.attendance-hero {
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+}
+
+.attendance-hero.hero-marked {
+    background: linear-gradient(135deg, #059669, #10b981);
+    box-shadow: 0 8px 32px rgba(5, 150, 105, 0.35);
+}
+
+.attendance-hero.hero-unmarked {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    box-shadow: 0 8px 32px rgba(220, 38, 38, 0.3);
+}
+
+.attendance-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+}
+
+.attendance-hero .greeting-sub {
+    color: rgba(255, 255, 255, 0.75);
+    text-transform: none;
+    letter-spacing: 0.01em;
+}
+
+.attendance-hero .greeting-name {
+    color: #fff;
+}
+
+.attendance-hero .clock-time {
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+    background: none;
+    background-clip: unset;
+}
+
+.attendance-hero .clock-date {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Status Ring */
+.status-ring-wrap {
+    position: relative;
+}
+
+.status-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+}
+
+.status-ring::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    z-index: -1;
+}
+
+.status-ring.not_marked::before {
+    background: linear-gradient(135deg, var(--danger), transparent);
+}
+
+.status-ring.checked_in::before {
+    background: linear-gradient(135deg, var(--success), #a7f3d0);
+    animation: rotateBorder 3s linear infinite;
+}
+
+.status-ring.checked_out::before {
+    background: linear-gradient(135deg, var(--info), #93c5fd);
+}
+
+@keyframes rotateBorder {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.status-ring-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+}
+
+.status-emoji {
+    font-size: 2rem;
+}
+
+.status-text {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+}
+
+.status-text-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.status-headline {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.35rem;
+    color: inherit;
+    line-height: 1.3;
+}
+
+.status-photo {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Times Row */
+.attendance-times {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.time-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.time-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+}
+
+.time-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.time-divider {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+/* Buttons */
+.attendance-actions {
+    width: 100%;
+    max-width: 260px;
+}
+
+.checkin-btn,
+.checkout-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: var(--radius-lg);
+    letter-spacing: 0.02em;
+}
+
+.done-msg {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    background: var(--glass-bg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+}
+
+/* Section Card */
+.section-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.section-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+}
+
+/* Week Grid */
+.week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.week-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.week-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.week-dot {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.week-day.present .week-dot {
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    color: var(--success);
+}
+
+.week-day.absent .week-dot {
+    background: var(--glass-bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.week-day.today .week-dot {
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    border-color: var(--brand-primary) !important;
+}
+
+.week-num {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+}
+
+.week-day.today .week-num {
+    color: var(--brand-primary);
+    font-weight: 700;
+}
+
+/* Table scroll */
+.table-scroll {
+    overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+    .page-shell {
+        padding: 1.25rem 0;
+    }
+
+    .greeting-section {
+        flex-direction: column;
+    }
+
+    .greeting-name {
+        font-size: 1.4rem;
+    }
+
+    .status-ring {
+        width: 86px;
+        height: 86px;
+    }
+
+    .status-row {
+        gap: 0.6rem;
+    }
+
+    .status-headline {
+        font-size: 0.85rem;
+    }
+
+    .status-photo {
+        width: 54px;
+        height: 54px;
+    }
+
+    .clock-display {
+        text-align: left;
+    }
+
+    .attendance-hero {
+        padding: 1.25rem 0.875rem;
+    }
+
+    .attendance-times {
+        gap: 0.5rem;
+    }
+
+    .time-value {
+        font-size: 0.95rem;
+    }
+}

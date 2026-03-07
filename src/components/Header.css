@@ -1,0 +1,239 @@
+/* ═══════════════════════════════════════════════════════
+   Header Component Styles
+═══════════════════════════════════════════════════════ */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ── Brand / Logo ── */
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.header-logo-wrap {
+    width: 38px;
+    height: 38px;
+    background: #ffffff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.header-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.header-brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-company {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--header-text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+}
+
+.header-role {
+    font-size: 0.65rem;
+    color: var(--brand-primary);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+}
+
+/* ── Nav ── */
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    margin-left: auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.38rem 0.7rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--nav-text);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+
+.nav-link:hover {
+    background: var(--nav-hover-bg);
+    color: var(--nav-hover-text);
+}
+
+.nav-link.active {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--brand-primary);
+}
+
+/* ── Right slot ── */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.65rem 0.3rem 0.4rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 100px;
+}
+
+.user-avatar {
+    font-size: 1rem;
+}
+
+.user-name {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--header-text);
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: var(--btn-logout-bg);
+    border: 1px solid var(--btn-logout-bg);
+    border-radius: 8px;
+    color: var(--btn-logout-text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-logout:hover {
+    filter: brightness(1.2);
+}
+
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+/* ── Mobile nav ── */
+.mobile-nav {
+    display: none;
+    flex-direction: column;
+    padding: 0.5rem 1rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 0.25rem;
+}
+
+.mobile-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--nav-text);
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.mobile-link:hover,
+.mobile-link.active {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--brand-primary);
+}
+
+.mobile-logout {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--btn-logout-text);
+    background: var(--btn-logout-bg);
+    border: none;
+    cursor: pointer;
+    margin-top: 0.25rem;
+    width: 100%;
+    transition: background 0.15s;
+}
+
+.mobile-logout:hover {
+    filter: brightness(1.2);
+}
+
+@media (max-width: 768px) {
+    .header-nav {
+        display: none;
+    }
+
+    .header-user,
+    .btn-logout {
+        display: none;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .mobile-nav {
+        display: flex;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--header-bg);
+        border-bottom: 1px solid var(--border);
+        z-index: 99;
+    }
+
+    .header-inner {
+        padding: 0.6rem 1rem;
+        justify-content: space-between;
+    }
+}
