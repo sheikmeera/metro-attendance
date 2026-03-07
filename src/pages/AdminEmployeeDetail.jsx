@@ -11,9 +11,12 @@ import {
 } from 'lucide-react'
 import { Translate } from '../utils/translateHelper'
 
-const API_BASE = import.meta.env.PROD
-    ? window.location.origin
-    : `${window.location.protocol}//${window.location.hostname}:4000`
+const getApiBase = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL.replace(/\/api$/, '')
+    if (import.meta.env.PROD) return window.location.origin
+    return `${window.location.protocol}//${window.location.hostname}:4000`
+}
+const API_BASE = getApiBase()
 
 const CSS = `
         .ed { display: flex; flex - direction: column; gap: 1.25rem; }
@@ -220,10 +223,10 @@ export function AdminEmployeeDetail() {
     const load = async () => {
         try {
             const [eRes, aRes, dRes, rRes] = await Promise.all([
-                client.get(`/ admin / employees / ${id} `),
-                client.get(`/ admin / attendance ? employee_id = ${id} `),
+                client.get(`/admin/employees/${id}`),
+                client.get(`/admin/attendance?employee_id=${id}`),
                 client.get('/admin/departments'),
-                client.get(`/ admin / reports ? employee_id = ${id} `),
+                client.get(`/admin/reports?employee_id=${id}`),
             ])
             setEmp(eRes.data)
             setAttendance(aRes.data)
@@ -253,7 +256,7 @@ export function AdminEmployeeDetail() {
             if (form.pin) formData.append('pin', form.pin)
             const avatarInput = document.getElementById('modal-avatar-upload')
             if (avatarInput?.files[0]) formData.append('avatar', avatarInput.files[0])
-            await client.put(`/ admin / employee / ${id} `, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+            await client.put(`/admin/employee/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
             showToast('Employee updated successfully.', 'success')
             setShowEditModal(false)
             load()
@@ -266,10 +269,10 @@ export function AdminEmployeeDetail() {
     const handleToggleStatus = async () => {
         try {
             if (emp.status === 'active') {
-                await client.delete(`/ admin / employee / ${id} `)
+                await client.delete(`/admin/employee/${id}`)
                 showToast('Employee deactivated.', 'success')
             } else {
-                await client.post(`/ admin / employee / ${id}/activate`)
+                await client.post(`/admin/employee/${id}/activate`)
                 showToast('Employee activated.', 'success')
             }
             load()
