@@ -96,17 +96,30 @@ app.get('/api/map-tile', (req, res) => {
 })
 
 // ── Serve React Frontend in Production ─────────────────────
-// Define the path to the React build output
 const buildPath = path.join(__dirname, '../dist')
-app.use(express.static(buildPath))
+const fs = require('fs')
 
-// Any route that doesn't start with /api and /uploads will serve index.html
-app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
-        return next()
-    }
-    res.sendFile(path.join(buildPath, 'index.html'))
-})
+if (fs.existsSync(buildPath)) {
+    app.use(express.static(buildPath))
+    app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+            return next()
+        }
+        res.sendFile(path.join(buildPath, 'index.html'))
+    })
+} else {
+    // If dist is missing (common on pure backend deploys like Render), 
+    // show a simple status page instead of crashing with ENOENT.
+    app.get('/', (req, res) => {
+        res.send(`
+            <div style="font-family: sans-serif; text-align: center; padding: 50px;">
+                <h1 style="color: #f59e0b;">🚀 Metro Backend is Live</h1>
+                <p>The API is working correctly. Frontend is hosted on Vercel.</p>
+                <a href="/api/health" style="color: #6366f1;">Check Health Status</a>
+            </div>
+        `)
+    })
+}
 
 // ── 404 Handler ────────────────────────────────────────────
 app.use((req, res) => {
