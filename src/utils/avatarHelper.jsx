@@ -3,6 +3,7 @@
  * Uses dynamic hostname so images work on both localhost and LAN (mobile).
  */
 const apiBase = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL.replace(/\/api$/, '')
     if (import.meta.env.PROD) return window.location.origin
     return `${window.location.protocol}//${window.location.hostname}:4000`
 }
