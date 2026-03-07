@@ -195,4 +195,17 @@ if (require.main === module) {
     startServer()
 }
 
+// ── Global Error Handler ──────────────────────────────────
+app.use((err, req, res, next) => {
+    console.error(`[FATAL ERROR] ${req.method} ${req.path}`)
+    console.error(err.stack)
+    if (!res.headersSent) {
+        res.status(500).json({
+            error: 'Internal Server Error',
+            message: err.message,
+            path: req.path
+        })
+    }
+})
+
 module.exports = app

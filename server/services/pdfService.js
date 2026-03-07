@@ -6,6 +6,7 @@
  * OSM map tile embedded per card when GPS available.
  * Strict manual Y-tracking to prevent misalignment.
  */
+const PDFDocument = require('pdfkit')
 const fetch = require('node-fetch')
 const path = require('path')
 const fs = require('fs')

@@ -8,9 +8,10 @@ const { MongoMemoryServer } = require('mongodb-memory-server')
 const path = require('path')
 require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 
-let mongod = null;
-
+let isConnected = false;
 const connectDB = async () => {
+  if (isConnected && mongoose.connection.readyState === 1) return;
+
   try {
     let uri = process.env.MONGO_URI;
 
@@ -25,11 +26,14 @@ const connectDB = async () => {
     }
 
     await mongoose.connect(uri);
+    isConnected = true;
     console.log(`[DB] Connected to MongoDB via Mongoose.`);
 
   } catch (err) {
     console.error('[DB] MongoDB Connection Error:', err.message)
-    process.exit(1)
+    if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+      process.exit(1)
+    }
   }
 }
 
