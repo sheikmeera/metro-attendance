@@ -54,19 +54,23 @@ exports.submitReport = async (req, res) => {
         const date = istDate.toISOString().split('T')[0]
         const time = istDate.toISOString().split('T')[1].slice(0, 5) // HH:MM in IST
 
-        // Check for existing report for this site and employee on the same day
-        const existingReport = await Report.findOne({
-            employee_id,
-            site_id,
-            report_time: {
-                $gte: new Date(date),
-                $lt: new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000)
-            }
-        })
+        console.log(`[Report] Submission attempt: Emp=${employee_id}, Site=${site_id}`);
 
-        if (existingReport) {
-            return res.status(409).json({ error: 'reporting done', alreadyReported: true })
-        }
+        // Removed existing report check to allow multiple reporting
+        /*
+                const existingReport = await Report.findOne({
+                    employee_id,
+                    site_id,
+                    report_time: {
+                        $gte: new Date(date),
+                        $lt: new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000)
+                    }
+                })
+        
+                if (existingReport) {
+                    return res.status(409).json({ error: 'reporting done', alreadyReported: true })
+                }
+        */
 
         // Save report
         const newReport = await Report.create({
@@ -79,22 +83,19 @@ exports.submitReport = async (req, res) => {
             report_time: istDate
         })
 
-        // Auto-mark attendance for today if not already marked
-        const existingAtt = await Attendance.findOne({ employee_id, date })
+        // Create attendance log for this submission (Always create to show in history)
+        await Attendance.create({
+            employee_id,
+            site_id,
+            date,
+            time,
+            status: 'present',
+            photo_url,
+            latitude: latitude || null,
+            longitude: longitude || null
+        })
 
-        if (!existingAtt) {
-            await Attendance.create({
-                employee_id,
-                site_id,
-                date,
-                time,
-                status: 'present',
-                photo_url,
-                latitude: latitude || null,
-                longitude: longitude || null
-            })
-        }
-
+        console.log(`[Report] Success: id=${newReport.id}, photo=${photo_url}`);
         res.status(201).json({ success: true, reportId: newReport.id, message: 'Report submitted and attendance marked.' })
     } catch (err) {
         res.status(500).json({ error: err.message })

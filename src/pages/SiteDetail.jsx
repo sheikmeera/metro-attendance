@@ -10,9 +10,13 @@ import {
 import { renderAvatar } from '../utils/avatarHelper'
 import { Translate } from '../utils/translateHelper'
 
-const API_BASE = import.meta.env.PROD
-    ? window.location.origin
-    : `${window.location.protocol}//${window.location.hostname}:4000`
+const getApiBase = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+    if (import.meta.env.PROD) return 'https://metro-attendance.onrender.com/api'
+    return `${window.location.protocol}//${window.location.hostname}:4000/api`
+}
+const API_BASE_CORE = getApiBase()
+const API_BASE = API_BASE_CORE.endsWith('/api') ? API_BASE_CORE.slice(0, -4) : API_BASE_CORE
 
 export function SiteDetail() {
     const { id } = useParams()

@@ -11,7 +11,7 @@ const getApiBase = () => {
     return `${window.location.protocol}//${window.location.hostname}:4000/api`
 }
 const API_BASE_CORE = getApiBase()
-const API_BASE = API_BASE_CORE.endsWith('/api') ? API_BASE_CORE.slice(0, -4) : API_BASE
+const API_BASE = API_BASE_CORE.endsWith('/api') ? API_BASE_CORE.slice(0, -4) : API_BASE_CORE
 
 function HistorySkeleton() {
     return (

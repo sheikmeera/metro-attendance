@@ -64,18 +64,39 @@ async function syncToDrive() {
 
 // Helper to assemble full records (similar to pdfController)
 async function buildAggregatedRecords(baseRecords) {
+    const mongoose = require('mongoose');
     return Promise.all(baseRecords.map(async (a) => {
-        const emp = await Employee.findOne({ id: a.employee_id }, 'name department role phone lean');
-        const site = a.site_id ? await Site.findById(a.site_id, 'site_name lean') : null;
+        // Fetch Employee - Corrected projection
+        const emp = await Employee.findOne({ id: a.employee_id }, 'name department role phone').lean();
 
-        const report = await Report.findOne({
-            employee_id: a.employee_id,
-            site_id: a.site_id,
-            report_time: {
-                $gte: new Date(a.date),
-                $lt: new Date(new Date(a.date).getTime() + 24 * 60 * 60 * 1000)
+        // Fetch Site (if exists) - Safe ID check
+        let site = null;
+        if (a.site_id && mongoose.Types.ObjectId.isValid(a.site_id)) {
+            site = await Site.findById(a.site_id, 'site_name').lean();
+        }
+
+        // Fetch matching Report ONLY if photo/gps is missing in Attendance (fallback for legacy)
+        let photo_url = a.photo_url;
+        let notes = a.notes;
+        let report_lat = a.latitude;
+        let report_lng = a.longitude;
+
+        if (!photo_url) {
+            const report = await Report.findOne({
+                employee_id: a.employee_id,
+                site_id: a.site_id,
+                report_time: {
+                    $gte: new Date(a.date),
+                    $lt: new Date(new Date(a.date).getTime() + 24 * 60 * 60 * 1000)
+                }
+            }).lean();
+            if (report) {
+                photo_url = report.photo_url;
+                notes = report.notes;
+                report_lat = report.latitude;
+                report_lng = report.longitude;
             }
-        }).lean();
+        }
 
         return {
             ...a,
@@ -83,11 +104,11 @@ async function buildAggregatedRecords(baseRecords) {
             department: emp ? emp.department : null,
             role: emp ? emp.role : null,
             phone: emp ? emp.phone : null,
-            site_name: site ? site.site_name : null,
-            photo_url: report ? report.photo_url : null,
-            notes: report ? report.notes : null,
-            report_lat: report ? report.latitude : null,
-            report_lng: report ? report.longitude : null
+            site_name: site ? site.site_name : (a.site_name || null),
+            photo_url,
+            notes,
+            report_lat,
+            report_lng
         };
     }));
 }

@@ -49,6 +49,7 @@ const BOT = 48        // bottom safe zone
 // ═══════════════════════════════════════════════════════════════════
 
 async function resolvePhoto(raw, tempFiles) {
+    console.log(`[PDF] resolvePhoto: raw="${raw}"`);
     if (!raw || raw === '👤') return null
 
     // Handle Cloudinary / Remote URLs
@@ -79,6 +80,7 @@ async function resolvePhoto(raw, tempFiles) {
 }
 
 async function fetchTile(lat, lng, zoom = 15) {
+    console.log(`[PDF] fetchTile: lat=${lat}, lng=${lng}, zoom=${zoom}`);
     if (!lat || !lng) return null
     const tmp = path.join(UPLOADS_DIR, `.tile_${Date.now()}.png`)
     try {
@@ -87,6 +89,7 @@ async function fetchTile(lat, lng, zoom = 15) {
         const tx = Math.floor((parseFloat(lng) + 180) / 360 * n)
         const ty = Math.floor((1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2 * n)
         const url = `https://tile.openstreetmap.org/${zoom}/${tx}/${ty}.png`
+        console.log(`[PDF] fetchTile: URL="${url}"`);
 
         const res = await fetch(url, {
             headers: { 'User-Agent': 'MetroElectricals/1.0' },
@@ -165,7 +168,7 @@ async function profileCard(doc, rows, y, tempFiles) {
 
     if (avatarRow && avatarRow.value) {
         const photo = await resolvePhoto(avatarRow.value, tempFiles)
-        if (photo) {
+        if (photo && fs.existsSync(photo)) {
             try {
                 const s = 64
                 const ax = ML + CW - s - 10, ay = y + PAD
