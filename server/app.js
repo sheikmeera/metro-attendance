@@ -31,7 +31,13 @@ try {
 
 // ── Health Check & Keep-Alive Ping ──────────────────────────
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() })
+    const mongoose = require('mongoose')
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    res.json({
+        status: dbStatus === 'connected' ? 'ok' : 'error',
+        database: dbStatus,
+        time: new Date().toISOString()
+    })
 })
 
 app.get('/api/ping', (req, res) => {
