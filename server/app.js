@@ -129,7 +129,7 @@ async function autoSeed() {
     }
 }
 
-async function start() {
+async function startServer() {
     try {
         // Start listening immediately so cloud health checks pass while DB connects
         app.listen(PORT, '0.0.0.0', () => {
@@ -143,8 +143,12 @@ async function start() {
         initAutomation() // start cron jobs
     } catch (err) {
         console.error('Failed to start server:', err)
-        process.exit(1)
+        if (require.main === module) process.exit(1)
     }
 }
 
-start()
+if (require.main === module) {
+    startServer()
+}
+
+module.exports = app

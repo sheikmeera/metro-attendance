@@ -1,0 +1,17 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '*/14 * * * *' # Every 14 minutes (Render sleeps at 15)
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Services
+        run: |
+          curl -I https://sheikFareeth-metro-attendance.hf.space/api/ping || echo "HF Ping failed"
+          # Add your Render/Vercel URLs below once deployed
+          # curl -I https://your-app.onrender.com/api/ping || echo "Render Ping failed"
+          # curl -I https://your-app.vercel.app/api/ping || echo "Vercel Ping failed"
