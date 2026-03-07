@@ -6,10 +6,9 @@
  * OSM map tile embedded per card when GPS available.
  * Strict manual Y-tracking to prevent misalignment.
  */
-const PDFDocument = require('pdfkit')
+const fetch = require('node-fetch')
 const path = require('path')
 const fs = require('fs')
-const { execSync } = require('child_process')
 const { translateText } = require('../utils/translateHelper')
 
 // ── Paths ─────────────────────────────────────────────────────
@@ -48,14 +47,17 @@ const BOT = 48        // bottom safe zone
 // UTILS
 // ═══════════════════════════════════════════════════════════════════
 
-function resolvePhoto(raw, tempFiles) {
+async function resolvePhoto(raw, tempFiles) {
     if (!raw || raw === '👤') return null
 
     // Handle Cloudinary / Remote URLs
     if (raw.startsWith?.('http')) {
         const tmp = path.join(UPLOADS_DIR, `.remote_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`)
         try {
-            execSync(`curl -s -L "${raw}" -o "${tmp}"`, { timeout: 10000 })
+            const res = await fetch(raw, { timeout: 10000 })
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const buffer = await res.buffer()
+            fs.writeFileSync(tmp, buffer)
             if (fs.existsSync(tmp)) {
                 if (tempFiles) tempFiles.push(tmp)
                 return tmp
@@ -75,7 +77,7 @@ function resolvePhoto(raw, tempFiles) {
     return null
 }
 
-function fetchTile(lat, lng, zoom = 15) {
+async function fetchTile(lat, lng, zoom = 15) {
     if (!lat || !lng) return null
     const tmp = path.join(UPLOADS_DIR, `.tile_${Date.now()}.png`)
     try {
@@ -84,7 +86,15 @@ function fetchTile(lat, lng, zoom = 15) {
         const tx = Math.floor((parseFloat(lng) + 180) / 360 * n)
         const ty = Math.floor((1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2 * n)
         const url = `https://tile.openstreetmap.org/${zoom}/${tx}/${ty}.png`
-        execSync(`curl -s -L -A "MetroElectricals/1.0" "${url}" -o "${tmp}"`, { timeout: 8000 })
+
+        const res = await fetch(url, {
+            headers: { 'User-Agent': 'MetroElectricals/1.0' },
+            timeout: 8000
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const buffer = await res.buffer()
+        fs.writeFileSync(tmp, buffer)
+
         return fs.existsSync(tmp) ? tmp : null
     } catch { rmTile(tmp); return null }
 }
@@ -133,7 +143,7 @@ function pageHeaderRepeat(doc) {
     return H + 2 + 10
 }
 
-function profileCard(doc, rows, y, tempFiles) {
+async function profileCard(doc, rows, y, tempFiles) {
     const ROW_H = 22
     const PAD = 10
     const textRows = rows.filter(r => !r.isAvatar)
@@ -153,7 +163,7 @@ function profileCard(doc, rows, y, tempFiles) {
     })
 
     if (avatarRow && avatarRow.value) {
-        const photo = resolvePhoto(avatarRow.value, tempFiles)
+        const photo = await resolvePhoto(avatarRow.value, tempFiles)
         if (photo) {
             try {
                 const s = 64
@@ -166,7 +176,7 @@ function profileCard(doc, rows, y, tempFiles) {
     return y + totalH + 10
 }
 
-function logCard(doc, rec, detailRows, y, index, options = {}) {
+async function logCard(doc, rec, detailRows, y, index, options = {}) {
     const CARD_H = 250
     const HEADER_H = 28
     const R = 6
@@ -205,7 +215,7 @@ function logCard(doc, rec, detailRows, y, index, options = {}) {
     // 2-Column Split
     const COL_W = (CW - 30) / 2
     const photoX = ML + 10, photoY = bodyY + 10, photoW = COL_W, photoH = bodyH - 20
-    const photoPath = resolvePhoto(rec.photo_url, options.tempFiles)
+    const photoPath = await resolvePhoto(rec.photo_url, options.tempFiles)
     const hasPhoto = photoPath && photoPath !== '👤'
 
     // Content Left: Photo
@@ -257,7 +267,7 @@ function logCard(doc, rec, detailRows, y, index, options = {}) {
     doc.save()
     doc.roundedRect(mapX, mapY, mapW, mapH, 6).clip()
     if (rec.report_lat && rec.report_lng) {
-        const tile = fetchTile(rec.report_lat, rec.report_lng, 15)
+        const tile = await fetchTile(rec.report_lat, rec.report_lng, 15)
         if (tile) {
             try {
                 const latRad = parseFloat(rec.report_lat) * Math.PI / 180
@@ -345,15 +355,16 @@ function generateEmployeeLog(output, employeeName, records, empData = {}, lang =
                 doc.end(); resolve(); return
             }
             y = heading(doc, `Attendance Logs — ${records.length} record(s)`, y)
-            records.forEach((r, i) => {
-                y = logCard(doc, r, [
+            for (let i = 0; i < records.length; i++) {
+                const r = records[i]
+                y = await logCard(doc, r, [
                     { label: 'EMPLOYEE', value: `${r.employee_name} (${r.employee_id})` },
                     { label: 'SITE', value: r.site_name || '—' },
                     { label: 'DATE & TIME', value: `${r.date} . ${r.time}` },
                     { label: 'STATUS', value: r.status?.toUpperCase() },
                     { label: 'NOTES', value: r.notes || '—' },
                 ], y, i, { title: r.site_name || '—', sub: `${r.date} . ${r.time}`, tempFiles })
-            })
+            }
             doc.on('end', () => { tempFiles.forEach(f => rmTile(f)); resolve() });
             doc.on('error', (err) => reject(err));
             doc.end()
@@ -408,15 +419,16 @@ function generateSiteLog(output, siteName, records, siteData = {}, lang = 'en') 
             y = heading(doc, `Detailed Logs — ${records.length} record(s)`, y + 16)
             y = summaryTable(doc, [{ label: 'EMPLOYEE', w: 130 }, { label: 'ID', w: 65 }, { label: 'DEPT', w: 90 }, { label: 'DATE', w: 90 }, { label: 'TIME', w: 60 }, { label: 'STATUS', w: 65 }], records.map(r => [r.employee_name, r.employee_id, r.department || '—', r.date, r.time, r.status]), y)
             doc.addPage(); y = pageHeader(doc, `Site Report: ${siteName} — Logs`, `Attendance log for ${siteName}`); y = heading(doc, 'Attendance Photo & Location Cards', y + 8)
-            records.forEach((r, i) => {
-                y = logCard(doc, r, [
+            for (let i = 0; i < records.length; i++) {
+                const r = records[i]
+                y = await logCard(doc, r, [
                     { label: 'EMPLOYEE', value: `${r.employee_name} (${r.employee_id})` },
                     { label: 'SITE', value: r.site_name || '—' },
                     { label: 'DATE & TIME', value: `${r.date} . ${r.time}` },
                     { label: 'STATUS', value: r.status?.toUpperCase() },
                     { label: 'NOTES', value: r.notes || '—' },
                 ], y, i, { title: `${r.employee_name} (${r.employee_id})`, sub: `${r.date} . ${r.time}`, tempFiles })
-            })
+            }
             doc.on('end', () => { tempFiles.forEach(f => rmTile(f)); resolve() });
             doc.on('error', (err) => reject(err));
             doc.end()
@@ -450,15 +462,16 @@ function generateDailyLog(output, date, records, lang = 'en') {
             y = heading(doc, `Summary — ${records.length} record(s)`, y)
             y = summaryTable(doc, [{ label: 'EMPLOYEE', w: 120 }, { label: 'ID', w: 65 }, { label: 'DEPT', w: 85 }, { label: 'SITE', w: 110 }, { label: 'TIME', w: 60 }, { label: 'STATUS', w: 60 }], records.map(r => [r.employee_name, r.employee_id, r.department || '—', r.site_name || '—', r.time, r.status]), y)
             doc.addPage(); y = pageHeader(doc, `Daily Logs: ${date} — Details`, `Attendance logs with photos and GPS for ${date}`); y = heading(doc, 'Attendance Photo & Location Cards', y + 8)
-            records.forEach((r, i) => {
-                y = logCard(doc, r, [
+            for (let i = 0; i < records.length; i++) {
+                const r = records[i]
+                y = await logCard(doc, r, [
                     { label: 'EMPLOYEE', value: `${r.employee_name} (${r.employee_id})` },
                     { label: 'SITE', value: r.site_name || '—' },
                     { label: 'DATE & TIME', value: `${r.date} . ${r.time}` },
                     { label: 'STATUS', value: r.status?.toUpperCase() },
                     { label: 'NOTES', value: r.notes || '—' },
                 ], y, i, { title: `${r.employee_name} (${r.employee_id})`, sub: r.time, tempFiles })
-            })
+            }
             doc.on('end', () => { tempFiles.forEach(f => rmTile(f)); resolve() });
             doc.on('error', (err) => reject(err));
             doc.end()
@@ -495,15 +508,16 @@ function generateMonthlyEmployeeLog(output, employeeName, monthYear, records, em
             y = heading(doc, `Monthly Attendance Summary — ${records.length} record(s)`, y)
             y = summaryTable(doc, [{ label: 'DATE', w: 80 }, { label: 'SITE', w: 150 }, { label: 'TIME', w: 100 }, { label: 'STATUS', w: 100 }, { label: 'VERIFIED', w: 100 }], records.map(r => [r.date, r.site_name || '—', r.time, r.status, r.verified ? 'YES' : 'NO']), y)
             doc.addPage(); y = pageHeader(doc, `Monthly Details: ${employeeName}`, `Detailed logs for ${monthYear}`); y = heading(doc, 'Daily Inspection Logs', y + 8)
-            records.forEach((r, i) => {
-                y = logCard(doc, r, [
+            for (let i = 0; i < records.length; i++) {
+                const r = records[i]
+                y = await logCard(doc, r, [
                     { label: 'EMPLOYEE', value: `${r.employee_name} (${r.employee_id})` },
                     { label: 'SITE', value: r.site_name || '—' },
                     { label: 'DATE & TIME', value: `${r.date} . ${r.time}` },
                     { label: 'STATUS', value: r.status?.toUpperCase() },
                     { label: 'NOTES', value: r.notes || '—' },
                 ], y, i, { title: r.site_name || '—', sub: `${r.date} . ${r.time}`, tempFiles })
-            })
+            }
             doc.on('end', () => { tempFiles.forEach(f => rmTile(f)); resolve() });
             doc.on('error', (err) => reject(err));
             doc.end()
