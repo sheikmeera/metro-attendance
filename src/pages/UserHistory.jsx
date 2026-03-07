@@ -5,6 +5,14 @@ import { format } from 'date-fns'
 import { Calendar, ClipboardList, MapPin, Clock, Filter } from 'lucide-react'
 import { Translate } from '../utils/translateHelper'
 
+const getApiBase = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+    if (import.meta.env.PROD) return 'https://metro-attendance.onrender.com/api'
+    return `${window.location.protocol}//${window.location.hostname}:4000/api`
+}
+const API_BASE_CORE = getApiBase()
+const API_BASE = API_BASE_CORE.endsWith('/api') ? API_BASE_CORE.slice(0, -4) : API_BASE
+
 function HistorySkeleton() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: '1rem' }}>
