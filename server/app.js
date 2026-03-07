@@ -41,27 +41,38 @@ app.get('/api/ping', (req, res) => {
 // ── Map Snapshot Proxy (avoids browser CORS with OSM) ──────
 // GET /api/map-tile?lat=13.05&lng=80.21&zoom=15
 app.get('/api/map-tile', (req, res) => {
-    const { lat, lng, zoom = 15 } = req.query
-    if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' })
+    try {
+        const { lat, lng, zoom = 15 } = req.query
+        if (!lat || !lng) return res.status(400).json({ error: 'lat and lng required' })
 
-    // Convert lat/lng to OSM tile x/y
-    const z = parseInt(zoom)
-    const latRad = parseFloat(lat) * Math.PI / 180
-    const n = Math.pow(2, z)
-    const tileX = Math.floor((parseFloat(lng) + 180) / 360 * n)
-    const tileY = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n)
+        // Convert lat/lng to OSM tile x/y
+        const z = parseInt(zoom)
+        const latRad = parseFloat(lat) * Math.PI / 180
+        const n = Math.pow(2, z)
+        const tileX = Math.floor((parseFloat(lng) + 180) / 360 * n)
+        const tileY = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n)
 
-    const url = `https://tile.openstreetmap.org/${z}/${tileX}/${tileY}.png`
+        const url = `https://tile.openstreetmap.org/${z}/${tileX}/${tileY}.png`
 
-    const https = require('https')
-    const request = https.get(url, {
-        headers: { 'User-Agent': 'MetroElectricals-Attendance/1.0' }
-    }, (proxyRes) => {
-        res.setHeader('Content-Type', 'image/png')
-        res.setHeader('Cache-Control', 'public, max-age=3600')
-        proxyRes.pipe(res)
-    })
-    request.on('error', () => res.status(502).json({ error: 'Could not fetch map tile' }))
+        const https = require('https')
+        const request = https.get(url, {
+            headers: { 'User-Agent': 'MetroElectricals-Attendance/1.0' }
+        }, (proxyRes) => {
+            if (proxyRes.statusCode !== 200) {
+                return res.status(proxyRes.statusCode).json({ error: 'Tile provider error' })
+            }
+            res.setHeader('Content-Type', 'image/png')
+            res.setHeader('Cache-Control', 'public, max-age=3600')
+            proxyRes.pipe(res)
+        })
+        request.on('error', (err) => {
+            console.error('[MapProxy] Error:', err.message)
+            res.status(502).json({ error: 'Could not fetch map tile' })
+        })
+    } catch (err) {
+        console.error('[MapProxy] Fatal:', err.message)
+        res.status(500).json({ error: 'Map proxy failed' })
+    }
 })
 
 // ── Serve React Frontend in Production ─────────────────────
