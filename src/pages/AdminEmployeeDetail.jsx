@@ -12,11 +12,12 @@ import {
 import { Translate } from '../utils/translateHelper'
 
 const getApiBase = () => {
-    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL.replace(/\/api$/, '')
-    if (import.meta.env.PROD) return window.location.origin
-    return `${window.location.protocol}//${window.location.hostname}:4000`
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+    if (import.meta.env.PROD) return 'https://metro-attendance.onrender.com/api'
+    return `${window.location.protocol}//${window.location.hostname}:4000/api`
 }
 const API_BASE = getApiBase()
+const BASE_URL = API_BASE.replace('/api', '')
 
 const CSS = `
         .ed { display: flex; flex - direction: column; gap: 1.25rem; }
@@ -290,8 +291,7 @@ export function AdminEmployeeDetail() {
         }
 
         if (avatar?.startsWith?.('/uploads')) {
-            const baseUrl = API_BASE.replace('/api', '')
-            return <img src={`${baseUrl}${avatar}`} alt="Avatar" style={{ ...base, objectFit: 'cover' }} />
+            return <img src={`${BASE_URL}${avatar}`} alt="Avatar" style={{ ...base, objectFit: 'cover' }} />
         }
 
         return (

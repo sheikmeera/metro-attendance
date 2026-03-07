@@ -3,8 +3,13 @@
  * Uses dynamic hostname so images work on both localhost and LAN (mobile).
  */
 const apiBase = () => {
+    // If VITE_API_URL is set (e.g. to https://app.onrender.com/api), 
+    // we use it for both API and local image assets.
     if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL.replace(/\/api$/, '')
-    if (import.meta.env.PROD) return window.location.origin
+
+    // In production, if VITE_API_URL is missing, we use the Render URL specifically for the Metro project
+    if (import.meta.env.PROD) return 'https://metro-attendance.onrender.com'
+
     return `${window.location.protocol}//${window.location.hostname}:4000`
 }
 

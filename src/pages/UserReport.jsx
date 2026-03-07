@@ -6,9 +6,9 @@ import { Building2, MapPin, User, Camera } from 'lucide-react'
 import './UserReport.css'
 
 const getApiBase = () => {
-    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL.replace(/\/api$/, '')
-    if (import.meta.env.PROD) return window.location.origin
-    return `${window.location.protocol}//${window.location.hostname}:4000`
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+    if (import.meta.env.PROD) return 'https://metro-attendance.onrender.com/api'
+    return `${window.location.protocol}//${window.location.hostname}:4000/api`
 }
 const API_BASE = getApiBase()
 

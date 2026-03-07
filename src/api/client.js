@@ -6,7 +6,7 @@ import axios from 'axios'
 
 const isProd = import.meta.env.PROD
 const API_BASE = import.meta.env.VITE_API_URL ||
-    (isProd ? `${window.location.origin}/api` : `${window.location.protocol}//${window.location.hostname}:4000/api`)
+    (isProd ? 'https://metro-attendance.onrender.com/api' : `${window.location.protocol}//${window.location.hostname}:4000/api`)
 
 const client = axios.create({ baseURL: API_BASE })
 
