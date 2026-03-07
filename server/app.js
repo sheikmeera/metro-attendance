@@ -20,16 +20,7 @@ app.use(express.urlencoded({ extended: true }))
 // ── Static: serve uploaded images ──────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
-// ── Routes ─────────────────────────────────────────────────
-try {
-    app.use('/api', require('./routes/authRoutes'))
-    app.use('/api/admin', require('./routes/adminRoutes'))
-    app.use('/api/employee', require('./routes/employeeRoutes'))
-} catch (err) {
-    console.error('Error loading routes:', err)
-}
-
-// ── Health Check & Keep-Alive Ping ──────────────────────────
+// ── Health Check & Keep-Alive Ping (Define BEFORE other routes) ──
 app.get('/api/health', (req, res) => {
     const mongoose = require('mongoose')
     const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
@@ -43,6 +34,22 @@ app.get('/api/health', (req, res) => {
 app.get('/api/ping', (req, res) => {
     res.status(200).send('pong')
 })
+
+// ── JWT Secret Check ──
+if (!process.env.JWT_SECRET) {
+    console.error('[CRITICAL] JWT_SECRET is missing in environment variables!')
+}
+
+// ── Routes ─────────────────────────────────────────────────
+try {
+    app.use('/api', require('./routes/authRoutes'))
+    app.use('/api/admin', require('./routes/adminRoutes'))
+    app.use('/api/employee', require('./routes/employeeRoutes'))
+} catch (err) {
+    console.error('Error loading routes:', err)
+}
+
+// ── Map Snapshot Proxy ──────────────────────────────────────
 
 // ── Map Snapshot Proxy (avoids browser CORS with OSM) ──────
 // GET /api/map-tile?lat=13.05&lng=80.21&zoom=15
