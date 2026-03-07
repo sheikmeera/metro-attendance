@@ -11,6 +11,7 @@ const getApiBase = () => {
     return `${window.location.protocol}//${window.location.hostname}:4000/api`
 }
 const API_BASE = getApiBase()
+const API_BASE_ROOT = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE
 
 /**
  * UserReport — 2-step flow:
@@ -95,7 +96,7 @@ export function UserReport() {
                 img.crossOrigin = 'anonymous'
                 img.onload = () => resolve(img)
                 img.onerror = () => resolve(null)
-                img.src = `${API_BASE}/api/map-tile?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}&zoom=15`
+                img.src = `${API_BASE}/map-tile?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}&zoom=15`
             }).catch(() => null)
         }
 
@@ -307,7 +308,7 @@ export function UserReport() {
                                             background: '#cdd3dc',
                                         }}>
                                             <img
-                                                src={`${API_BASE}/api/map-tile?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}&zoom=15`}
+                                                src={`${API_BASE}/map-tile?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}&zoom=15`}
                                                 alt="Location map"
                                                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                                             />

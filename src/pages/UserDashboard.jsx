@@ -11,9 +11,13 @@ import {
 import { Translate } from '../utils/translateHelper'
 import './UserDashboard.css'
 
-const API_BASE = import.meta.env.PROD
-    ? window.location.origin
-    : `${window.location.protocol}//${window.location.hostname}:4000`
+const getApiBase = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
+    if (import.meta.env.PROD) return 'https://metro-attendance.onrender.com/api'
+    return `${window.location.protocol}//${window.location.hostname}:4000/api`
+}
+const API_BASE_CORE = getApiBase()
+const API_BASE = API_BASE_CORE.endsWith('/api') ? API_BASE_CORE.slice(0, -4) : API_BASE_CORE
 
 function getGreeting() {
     const h = new Date().getHours()
@@ -22,25 +26,23 @@ function getGreeting() {
     return 'Evening'
 }
 
-function DashboardSkeleton() {
-    return (
-        <div className="page-content" style={{ maxWidth: 680 }}>
-            {/* Hero skeleton */}
-            <div className="skeleton skeleton-card" style={{ height: 160, borderRadius: 'var(--radius-xl)' }} />
-            {/* Stats row skeleton */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem' }}>
-                {[...Array(3)].map((_, i) => <div key={i} className="skeleton skeleton-card" style={{ height: 80 }} />)}
-            </div>
-            {/* Week skeleton */}
-            <div className="skeleton skeleton-card" style={{ height: 100 }} />
-            {/* Table skeleton */}
-            <div className="section-card" style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <div className="skeleton skeleton-title" style={{ width: '40%', marginBottom: 8 }} />
-                {[...Array(3)].map((_, i) => <div key={i} className="skeleton skeleton-row" style={{ animationDelay: `${i * 0.07}s` }} />)}
-            </div>
+const DashboardSkeleton = () => (
+    <div className="page-content" style={{ maxWidth: 800 }}>
+        {/* Hero skeleton */}
+        <div className="skeleton skeleton-card" style={{ height: 160, borderRadius: 'var(--radius-xl)' }} />
+        {/* Stats row skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem' }}>
+            {[...Array(3)].map((_, i) => <div key={i} className="skeleton skeleton-card" style={{ height: 80 }} />)}
         </div>
-    )
-}
+        {/* Week skeleton */}
+        <div className="skeleton skeleton-card" style={{ height: 100 }} />
+        {/* Table skeleton */}
+        <div className="section-card" style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            <div className="skeleton skeleton-title" style={{ width: '40%', marginBottom: 8 }} />
+            {[...Array(3)].map((_, i) => <div key={i} className="skeleton skeleton-row" style={{ animationDelay: `${i * 0.07}s` }} />)}
+        </div>
+    </div>
+)
 
 export function UserDashboard() {
     const { currentUser, showToast, t } = useApp()
@@ -112,7 +114,7 @@ export function UserDashboard() {
 
     return (
         <div className="page-shell page-enter">
-            <div className="page-content" style={{ maxWidth: 680 }}>
+            <div className="page-content" style={{ maxWidth: 840 }}>
 
                 {/* ── Hero Card — Today Status ── */}
                 <div className={`attendance-hero anim-in ${marked ? 'hero-marked' : 'hero-unmarked'}`}>
