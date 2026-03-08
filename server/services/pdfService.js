@@ -330,15 +330,7 @@ function generateEmployeeLog(output, employeeName, records, empData = {}, lang =
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []
-            if (lang !== 'en') {
-                employeeName = await translateText(employeeName, lang);
-                if (empData.name) empData.name = await translateText(empData.name, lang);
-                if (empData.department) empData.department = await translateText(empData.department, lang);
-                await Promise.all(records.map(async r => {
-                    if (r.site_name) r.site_name = await translateText(r.site_name, lang);
-                    if (r.notes) r.notes = await translateText(r.notes, lang);
-                }));
-            }
+            // removed translation block
             const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true })
             if (output.setHeader) {
                 output.setHeader('Content-Type', 'application/pdf')
@@ -380,18 +372,7 @@ function generateSiteLog(output, siteName, records, siteData = {}, lang = 'en') 
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []
-            if (lang !== 'en') {
-                siteName = await translateText(siteName, lang);
-                if (siteData.site_name) siteData.site_name = await translateText(siteData.site_name, lang);
-                if (siteData.client_name) siteData.client_name = await translateText(siteData.client_name, lang);
-                if (siteData.location_name) siteData.location_name = await translateText(siteData.location_name, lang);
-                if (siteData.work_details) siteData.work_details = await translateText(siteData.work_details, lang);
-                await Promise.all(records.map(async r => {
-                    if (r.employee_name) r.employee_name = await translateText(r.employee_name, lang);
-                    if (r.department) r.department = await translateText(r.department, lang);
-                    if (r.notes) r.notes = await translateText(r.notes, lang);
-                }));
-            }
+            // removed translation block
             const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true })
             if (output.setHeader) {
                 output.setHeader('Content-Type', 'application/pdf')
@@ -444,14 +425,7 @@ function generateDailyLog(output, date, records, lang = 'en') {
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []
-            if (lang !== 'en') {
-                await Promise.all(records.map(async r => {
-                    if (r.employee_name) r.employee_name = await translateText(r.employee_name, lang);
-                    if (r.department) r.department = await translateText(r.department, lang);
-                    if (r.site_name) r.site_name = await translateText(r.site_name, lang);
-                    if (r.notes) r.notes = await translateText(r.notes, lang);
-                }));
-            }
+            // removed translation block
             const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true })
             if (output.setHeader) {
                 output.setHeader('Content-Type', 'application/pdf')
@@ -487,15 +461,7 @@ function generateMonthlyEmployeeLog(output, employeeName, monthYear, records, em
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []
-            if (lang !== 'en') {
-                employeeName = await translateText(employeeName, lang);
-                if (empData.name) empData.name = await translateText(empData.name, lang);
-                if (empData.department) empData.department = await translateText(empData.department, lang);
-                await Promise.all(records.map(async r => {
-                    if (r.site_name) r.site_name = await translateText(r.site_name, lang);
-                    if (r.notes) r.notes = await translateText(r.notes, lang);
-                }));
-            }
+            // removed translation block
             const doc = new PDFDocument({ size: 'A4', margin: 0, autoFirstPage: true })
             if (output.setHeader) {
                 output.setHeader('Content-Type', 'application/pdf')

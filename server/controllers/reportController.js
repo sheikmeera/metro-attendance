@@ -151,7 +151,7 @@ exports.getAllReports = async (req, res) => {
         let query = {}
 
         if (employee_id) query.employee_id = employee_id
-        if (site_id) query.site_id = site_id
+        if (site_id && site_id !== 'undefined' && site_id !== 'null') query.site_id = site_id
 
         if (date) {
             const startDate = new Date(date)
@@ -169,9 +169,18 @@ exports.getAllReports = async (req, res) => {
             .populate('site_id', 'site_name')
             .lean()
 
-        // Populate employee data manually
-        const populated = await Promise.all(reports.map(async (r) => {
-            const emp = await Employee.findOne({ id: r.employee_id }, 'name avatar').lean()
+        // Collect all unique employee IDs and fetch them in one query
+        const employeeIds = [...new Set(reports.map(r => r.employee_id))]
+        const employees = await Employee.find({ id: { $in: employeeIds } }, 'id name avatar').lean()
+
+        const empMap = {}
+        employees.forEach(emp => {
+            empMap[emp.id] = emp
+        })
+
+        // Populate employee data seamlessly
+        const populated = reports.map((r) => {
+            const emp = empMap[r.employee_id]
             return {
                 ...r,
                 id: r._id,
@@ -180,7 +189,7 @@ exports.getAllReports = async (req, res) => {
                 employee_name: emp ? emp.name : null,
                 avatar: emp ? emp.avatar : null
             }
-        }))
+        })
 
         res.json(populated)
     } catch (err) {

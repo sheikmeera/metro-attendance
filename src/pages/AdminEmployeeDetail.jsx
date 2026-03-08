@@ -145,7 +145,7 @@ export function AdminEmployeeDetail() {
             : { width: size, height: size, borderRadius: '50%', display: 'block' }
 
         if (avatar?.startsWith?.('http')) {
-            return <img src={avatar} alt="Avatar" style={{ ...base, objectFit: 'cover' }} />
+            return <img src={avatar} alt="Avatar" crossOrigin="anonymous" style={{ ...base, objectFit: 'cover' }} />
         }
 
         if (avatar?.includes?.('uploads')) {

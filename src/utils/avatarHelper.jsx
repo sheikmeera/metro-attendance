@@ -22,6 +22,7 @@ export function renderAvatar(avatar, size = '1.2rem') {
             <img
                 src={avatar}
                 alt="Avatar"
+                crossOrigin="anonymous"
                 style={{ width: `calc(${size} * 1.5)`, height: `calc(${size} * 1.5)`, borderRadius: '50%', objectFit: 'cover' }}
             />
         )
