@@ -45,6 +45,7 @@ async function buildAggregatedRecords(baseRecords) {
     reports.forEach(r => {
       // Group by employee_id + site_id + Date (YYYY-MM-DD string)
       const rDate = new Date(r.report_time)
+      if (isNaN(rDate.getTime())) return
       const istOffset = 5.5 * 60 * 60 * 1000
       const istDate = new Date(rDate.getTime() + istOffset)
       const dateStr = istDate.toISOString().split('T')[0]

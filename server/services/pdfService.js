@@ -107,7 +107,17 @@ async function fetchTile(lat, lng, zoom = 15) {
 
 function rmTile(p) { if (p) try { fs.unlinkSync(p) } catch { } }
 
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true })
+function formatDateTime(date) {
+    try {
+        return date.toLocaleString('en-GB', { hour12: false }).replace(',', '')
+    } catch {
+        return date.toISOString().replace('T', ' ').substring(0, 19)
+    }
+}
+
+if (UPLOADS_DIR !== os.tmpdir()) {
+    if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true })
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // DOCUMENT HELPERS
@@ -339,7 +349,7 @@ function generateEmployeeLog(output, employeeName, records, empData = {}) {
                 output.setHeader('Content-Disposition', `attachment; filename="metro_emp_${employeeName.replace(/\s/g, '_')}.pdf"`)
             }
             doc.pipe(output)
-            let y = pageHeader(doc, `Employee Report: ${employeeName}`, `Generated: ${new Date().toLocaleString('en-IN')} . ${records.length} record(s)`)
+            let y = pageHeader(doc, `Employee Report: ${employeeName}`, `Generated: ${formatDateTime(new Date())} . ${records.length} record(s)`)
             y = heading(doc, 'Employee Profile', y)
             y = profileCard(doc, [
                 { label: 'Full Name', value: empData.name || employeeName },
@@ -381,7 +391,7 @@ function generateSiteLog(output, siteName, records, siteData = {}) {
                 output.setHeader('Content-Disposition', `attachment; filename="metro_site_${siteName.replace(/[^a-z0-9]/gi, '_')}.pdf"`)
             }
             doc.pipe(output)
-            let y = pageHeader(doc, `Site Report: ${siteName}`, `Generated: ${new Date().toLocaleString('en-IN')} . ${records.length} record(s)`)
+            let y = pageHeader(doc, `Site Report: ${siteName}`, `Generated: ${formatDateTime(new Date())} . ${records.length} record(s)`)
             y = heading(doc, 'Site Profile', y)
             y = profileCard(doc, [
                 { label: 'Site Name', value: siteData.site_name || siteName },
@@ -434,7 +444,7 @@ function generateDailyLog(output, date, records) {
                 output.setHeader('Content-Disposition', `attachment; filename="metro_daily_${date}.pdf"`)
             }
             doc.pipe(output)
-            let y = pageHeader(doc, `Daily Attendance: ${date}`, `Generated: ${new Date().toLocaleString('en-IN')} . ${records.length} record(s)`)
+            let y = pageHeader(doc, `Daily Attendance: ${date}`, `Generated: ${formatDateTime(new Date())} . ${records.length} record(s)`)
             if (records.length === 0) {
                 doc.fillColor(MUTED).fontSize(11).text('No records for this date.', ML, y + 20)
                 doc.end(); resolve(); return
@@ -470,7 +480,7 @@ function generateMonthlyEmployeeLog(output, employeeName, monthYear, records, em
                 output.setHeader('Content-Disposition', `attachment; filename="metro_monthly_${employeeName.replace(/\s/g, '_')}_${monthYear}.pdf"`)
             }
             doc.pipe(output)
-            let y = pageHeader(doc, `Monthly Employee Report: ${employeeName}`, `Period: ${monthYear} . Generated: ${new Date().toLocaleString('en-IN')} . ${records.length || 0} record(s)`)
+            let y = pageHeader(doc, `Monthly Employee Report: ${employeeName}`, `Period: ${monthYear} . Generated: ${formatDateTime(new Date())} . ${records.length || 0} record(s)`)
             y = heading(doc, 'Employee Profile', y)
             y = profileCard(doc, [{ label: 'Full Name', value: empData.name || employeeName }, { label: 'Employee ID', value: empData.id || records[0]?.employee_id }, { label: 'Department', value: empData.department }, { label: 'Status', value: empData.status || 'active' }, { label: 'avatar', value: empData.avatar || records[0]?.avatar, isAvatar: true }], y, tempFiles)
             if (records.length === 0) {
