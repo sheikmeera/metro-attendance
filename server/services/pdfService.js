@@ -10,7 +10,7 @@ const PDFDocument = require('pdfkit')
 const fetch = require('node-fetch')
 const path = require('path')
 const fs = require('fs')
-const { translateText } = require('../utils/translateHelper')
+
 
 // ── Paths ─────────────────────────────────────────────────────
 const LOGO_PATH = (() => {
@@ -326,7 +326,7 @@ function summaryTable(doc, cols, rows, startY) {
     return y + 8
 }
 
-function generateEmployeeLog(output, employeeName, records, empData = {}, lang = 'en') {
+function generateEmployeeLog(output, employeeName, records, empData = {}) {
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []
@@ -368,7 +368,7 @@ function generateEmployeeLog(output, employeeName, records, empData = {}, lang =
     });
 }
 
-function generateSiteLog(output, siteName, records, siteData = {}, lang = 'en') {
+function generateSiteLog(output, siteName, records, siteData = {}) {
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []
@@ -421,7 +421,7 @@ function generateSiteLog(output, siteName, records, siteData = {}, lang = 'en') 
     });
 }
 
-function generateDailyLog(output, date, records, lang = 'en') {
+function generateDailyLog(output, date, records) {
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []
@@ -457,7 +457,7 @@ function generateDailyLog(output, date, records, lang = 'en') {
     });
 }
 
-function generateMonthlyEmployeeLog(output, employeeName, monthYear, records, empData = {}, lang = 'en') {
+function generateMonthlyEmployeeLog(output, employeeName, monthYear, records, empData = {}) {
     return new Promise(async (resolve, reject) => {
         try {
             const tempFiles = []

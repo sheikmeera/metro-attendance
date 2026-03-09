@@ -94,12 +94,11 @@ async function buildAggregatedRecords(baseRecords) {
 exports.dailyLog = async (req, res) => {
   try {
     const date = req.query.date || new Date().toISOString().split('T')[0]
-    const lang = req.query.lang || 'en'
 
     const attendances = await Attendance.find({ date }).sort({ time: 1 }).lean()
     const records = await buildAggregatedRecords(attendances)
 
-    await generateDailyLog(res, date, records, lang)
+    await generateDailyLog(res, date, records)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -108,7 +107,7 @@ exports.dailyLog = async (req, res) => {
 // GET /api/admin/logs/site?site_id=1&date=YYYY-MM-DD
 exports.siteLog = async (req, res) => {
   try {
-    const { site_id, date, lang = 'en' } = req.query
+    const { site_id, date } = req.query
     if (!site_id) return res.status(400).json({ error: 'site_id is required.' })
 
     let siteData = {}
@@ -121,7 +120,7 @@ exports.siteLog = async (req, res) => {
     const attendances = await Attendance.find(query).sort({ date: -1, time: 1 }).lean()
     const records = await buildAggregatedRecords(attendances)
 
-    await generateSiteLog(res, siteData.site_name || `Site ${site_id}`, records, siteData, lang)
+    await generateSiteLog(res, siteData.site_name || `Site ${site_id}`, records, siteData)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
@@ -130,7 +129,7 @@ exports.siteLog = async (req, res) => {
 // GET /api/admin/logs/employee?employee_id=MET001&date=YYYY-MM-DD
 exports.employeeLog = async (req, res) => {
   try {
-    const { employee_id, date, lang = 'en' } = req.query
+    const { employee_id, date } = req.query
     if (!employee_id) return res.status(400).json({ error: 'employee_id is required.' })
 
     const empData = await Employee.findOne({ id: employee_id }).lean() || {}
@@ -140,7 +139,7 @@ exports.employeeLog = async (req, res) => {
     const attendances = await Attendance.find(query).sort({ date: -1 }).lean()
     const records = await buildAggregatedRecords(attendances)
 
-    await generateEmployeeLog(res, empData.name || employee_id, records, empData, lang)
+    await generateEmployeeLog(res, empData.name || employee_id, records, empData)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
