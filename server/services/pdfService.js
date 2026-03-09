@@ -14,15 +14,24 @@ const os = require('os')
 
 // ── Paths ─────────────────────────────────────────────────────
 const LOGO_PATH = (() => {
+    const cwd = process.cwd()
     const candidates = [
         path.join(__dirname, '../../public/logo.jpeg'),
+        path.join(__dirname, '../public/logo.jpeg'),
         path.join(__dirname, '../logo.jpeg'),
+        path.join(cwd, 'public/logo.jpeg'),
+        path.join(cwd, 'server/public/logo.jpeg'),
+        path.join(cwd, 'server/logo.jpeg'),
+        path.join(cwd, 'logo.jpeg'),
+        // PNG alternatives
         path.join(__dirname, '../../public/logo.png'),
-        path.join(__dirname, '../logo.png'),
-        path.join(process.cwd(), 'public/logo.jpeg'),
-        path.join(process.cwd(), 'server/logo.jpeg'),
+        path.join(__dirname, '../public/logo.png'),
+        path.join(cwd, 'public/logo.png'),
     ]
-    return candidates.find(p => fs.existsSync(p)) || ''
+    const found = candidates.find(p => fs.existsSync(p))
+    if (found) console.log(`[PDF] Logo found at: ${found}`)
+    else console.warn('[PDF] No logo found in any candidate path.')
+    return found || ''
 })()
 const UPLOADS_DIR = os.tmpdir()
 
