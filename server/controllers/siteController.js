@@ -112,17 +112,31 @@ exports.closeSite = async (req, res) => {
     }
 }
 
+const Notification = require('./notificationController');
+
 // POST /api/admin/site/assign  — assign an employee to a site
 exports.assignEmployee = async (req, res) => {
     try {
         const { site_id, employee_id } = req.body
         if (!site_id || !employee_id) return res.status(400).json({ error: 'site_id and employee_id required.' })
 
+        const site = await Site.findById(site_id)
+        if (!site) return res.status(404).json({ error: 'Site not found.' })
+
         const existing = await SiteAssignment.findOne({ site_id, employee_id })
         if (existing) return res.status(409).json({ error: 'Employee already assigned to this site.' })
 
         await SiteAssignment.create({ site_id, employee_id })
-        res.status(201).json({ success: true })
+
+        // Trigger Push Notification
+        await Notification.sendToUser(employee_id, {
+            title: 'New Site Assigned 🚉',
+            body: `You have been assigned to: ${site.site_name}. Please check your dashboard.`,
+            icon: '/pwa-192x192.png',
+            data: { url: '/' }
+        });
+
+        res.status(201).json({ success: true, message: 'Employee assigned and notified.' })
     } catch (err) {
         res.status(500).json({ error: err.message })
     }

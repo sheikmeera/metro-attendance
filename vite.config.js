@@ -14,13 +14,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      injectRegister: 'auto',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'Metro Electricals Attendance',
-        short_name: 'Metro Attendance',
-        description: 'Attendance Management System for Metro Electricals',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        short_name: 'Metro',
+        description: 'Field attendance and reporting for Metro Electricals team',
+        theme_color: '#f97316',
+        background_color: '#0a0a0a',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
@@ -29,7 +30,8 @@ export default defineConfig({
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: 'pwa-512x512.png',

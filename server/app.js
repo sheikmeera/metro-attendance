@@ -47,9 +47,15 @@ if (!process.env.JWT_SECRET) {
 
 // ── Routes ─────────────────────────────────────────────────
 try {
-    app.use('/api', require('./routes/authRoutes'))
-    app.use('/api/admin', require('./routes/adminRoutes'))
-    app.use('/api/employee', require('./routes/employeeRoutes'))
+    const authRoutes = require('./routes/authRoutes')
+    const adminRoutes = require('./routes/adminRoutes')
+    const employeeRoutes = require('./routes/employeeRoutes')
+    const notificationRoutes = require('./routes/notificationRoutes');
+
+    app.use('/api', authRoutes); // authRoutes usually at /api like /api/login
+    app.use('/api/admin', adminRoutes);
+    app.use('/api/employee', employeeRoutes);
+    app.use('/api/notifications', notificationRoutes);
 } catch (err) {
     console.error('Error loading routes:', err)
 }

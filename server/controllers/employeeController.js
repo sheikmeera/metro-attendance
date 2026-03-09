@@ -25,13 +25,15 @@ exports.getOne = async (req, res) => {
     }
 }
 
-// Auto-generate next employee ID: MET001, MET002, ...
+// Auto-generate next employee ID: MET10001, MET10002, ... (8 chars total)
 async function generateEmployeeId() {
     const lastEmp = await Employee.findOne({ id: /^MET/ }).sort({ id: -1 })
-    if (!lastEmp) return 'MET001'
+    if (!lastEmp) return 'MET10001'
 
-    const num = parseInt(lastEmp.id.replace('MET', ''), 10)
-    return `MET${String(num + 1).padStart(3, '0')}`
+    const numMatch = lastEmp.id.match(/MET(\d+)/)
+    const num = numMatch ? parseInt(numMatch[1], 10) : 10000
+    const nextNum = Math.max(num + 1, 10001)
+    return `MET${String(nextNum).padStart(5, '0')}`
 }
 
 // POST /api/admin/employee

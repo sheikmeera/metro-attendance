@@ -155,25 +155,34 @@ async function v2_profileCard(doc, rows, y, assetMap) {
     return y + totalH + 15;
 }
 
-async function v2_logCard(doc, rec, detailRows, y, index, assetMap) {
-    const CARD_H = 250, HEADER_H = 28, R = 6;
-    if (y + CARD_H + 20 > PH - BOT) { doc.addPage(); y = v2_pageHeaderRepeat(doc); }
+async function v2_logCard(doc, rec, y, x, width, index, assetMap) {
+    const CARD_H = 180, HEADER_H = 28, R = 6;
 
+    // Card Container
     doc.save();
-    doc.roundedRect(ML, y, CW, HEADER_H, R).clip().rect(ML, y, CW, HEADER_H).fill(DARK).restore();
+    // Header
+    doc.roundedRect(x, y, width, HEADER_H, R).clip().rect(x, y, width, HEADER_H).fill(DARK).restore();
 
     // Badge
-    doc.save().roundedRect(ML + 8, y + 5, 24, 18, 4).fill(AMBER).restore();
-    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(8).text(`#${index + 1}`, ML + 8, y + 10, { width: 24, align: 'center' });
+    doc.save().roundedRect(x + 8, y + 5, 24, 18, 4).fill(AMBER).restore();
+    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(8.5).text(`#${index + 1}`, x + 8, y + 10, { width: 24, align: 'center' });
 
-    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(10).text(`${rec.employee_name || '—'}  ·  ${rec.employee_id || '—'}`, ML + 40, y + 9);
-    doc.fillColor('#94a3b8').font('Helvetica').fontSize(8).text(`${rec.date} . ${rec.time}`, ML + CW - 192, y + 10, { width: 180, align: 'right' });
+    // Employee Name & ID
+    const nameText = `${rec.employee_name || '—'}  ·  ${rec.employee_id || '—'}`;
+    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(9).text(nameText, x + 40, y + 9, { width: width - 110 });
 
+    // Date & Time (Top Right)
+    const dateTime = `${rec.date || ''}  ${rec.time || ''}`;
+    doc.fillColor('#94a3b8').font('Helvetica').fontSize(7.5).text(dateTime, x + width - 105, y + 10, { width: 100, align: 'right' });
+
+    // Body
     const bodyY = y + HEADER_H, bodyH = CARD_H - HEADER_H;
-    doc.save().fillColor(WHITE).strokeColor(BORDER).roundedRect(ML, bodyY, CW, bodyH, R).fillAndStroke().restore();
+    doc.save().fillColor(WHITE).strokeColor(BORDER).roundedRect(x, bodyY, width, bodyH, R).fillAndStroke().restore();
 
-    const photoX = ML + 10, photoY = bodyY + 10, photoW = (CW - 30) / 2, photoH = bodyH - 20;
-    doc.save().roundedRect(photoX, photoY, photoW, photoH, 6).clip();
+    // Photo (Left side of Body)
+    const photoW = (width * 0.45), photoH = bodyH - 20;
+    const photoX = x + 10, photoY = bodyY + 10;
+    doc.save().roundedRect(photoX, photoY, photoW, photoH, 8).clip();
     const photoPath = assetMap[rec.photo_url];
     if (photoPath) {
         try { doc.image(photoPath, photoX, photoY, { fit: [photoW, photoH], align: 'center', valign: 'center' }); }
@@ -183,36 +192,63 @@ async function v2_logCard(doc, rec, detailRows, y, index, assetMap) {
     }
     doc.restore();
 
-    // Details Right
-    const dx = photoX + photoW + 20, dw = photoW;
-    let dy = bodyY + 10;
-    detailRows.forEach(row => {
-        if (!row.value || row.value === '—') return;
-        doc.circle(dx - 5, dy + 4, 1.5).fill(AMBER);
-        doc.fillColor(MUTED).font('Helvetica-Bold').fontSize(6.5).text(row.label.toUpperCase(), dx, dy);
-        dy += 9;
-        const val = String(row.value);
-        doc.fillColor(TEXT).font('Helvetica-Bold').fontSize(8).text(val, dx, dy, { width: dw - 10 });
-        dy += doc.heightOfString(val, { width: dw - 10, fontSize: 8 }) + 6;
-    });
+    // Vertical Divider (Dotted line effect)
+    const dividerX = photoX + photoW + 10;
+    doc.save();
+    doc.dash(1, { space: 2 }).strokeColor(BORDER).moveTo(dividerX, bodyY + 10).lineTo(dividerX, bodyY + bodyH - 10).stroke();
+    doc.restore();
 
-    // Map Slot
-    const mx = dx, my = bodyY + bodyH - 70, mw = dw - 10, mh = 45;
-    doc.save().roundedRect(mx, my, mw, mh, 4).clip();
+    // Details (Right side of Body)
+    const detailsX = dividerX + 10, detailsW = width - (detailsX - x) - 10;
+    let dy = bodyY + 10;
+
+    const drawDetail = (label, value, isStatus = false) => {
+        if (!value || value === '—') return;
+
+        // Bullet
+        doc.circle(detailsX - 5, dy + 4, 1.5).fill(AMBER);
+
+        // Label
+        doc.fillColor(MUTED).font('Helvetica-Bold').fontSize(6).text(label.toUpperCase(), detailsX, dy);
+        dy += 8;
+
+        // Value
+        if (isStatus && value.toUpperCase() === 'PRESENT') {
+            doc.save().roundedRect(detailsX, dy - 2, 50, 12, 3).fill(GREEN).restore();
+            doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(7).text(value.toUpperCase(), detailsX, dy + 0.5, { width: 50, align: 'center' });
+            dy += 16;
+        } else {
+            doc.fillColor(TEXT).font('Helvetica-Bold').fontSize(8).text(String(value), detailsX, dy, { width: detailsW });
+            dy += doc.heightOfString(String(value), { width: detailsW, fontSize: 8 }) + 6;
+        }
+    };
+
+    drawDetail('Site', rec.site_name);
+    drawDetail('Date & Time', `${rec.date} · ${rec.time}`);
+    drawDetail('Status', rec.status || 'PRESENT', true);
+    drawDetail('Notes', rec.notes);
+
+    // Map Snapshot (Bottom Right)
+    const mapW = detailsW, mapH = 35;
+    const mapX = detailsX, mapY = bodyY + bodyH - 55;
+    doc.save().roundedRect(mapX, mapY, mapW, mapH, 4).clip();
     const tileUrl = getTileUrl(rec.report_lat, rec.report_lng);
     const tilePath = assetMap[tileUrl];
     if (tilePath) {
-        try { doc.image(tilePath, mx, my, { width: mw, height: mh, fit: [mw, mh] }); }
-        catch { doc.rect(mx, my, mw, mh).fill('#f1f5f9'); }
+        try { doc.image(tilePath, mapX, mapY, { width: mapW, height: mapH, fit: [mapW, mapH] }); }
+        catch { doc.rect(mapX, mapY, mapW, mapH).fill('#f1f5f9'); }
     } else {
-        doc.rect(mx, my, mw, mh).fill('#f1f5f9');
+        doc.rect(mapX, mapY, mapW, mapH).fill('#f1f5f9');
     }
     doc.restore();
+
+    // GPS Text
     if (rec.report_lat) {
-        doc.fillColor(MUTED).font('Helvetica').fontSize(6).text(`GPS: ${parseFloat(rec.report_lat).toFixed(5)}, ${parseFloat(rec.report_lng).toFixed(5)}`, mx, my + mh + 2);
+        const gpsText = `Ø-ÚÍ ${parseFloat(rec.report_lat).toFixed(5)}, ${parseFloat(rec.report_lng).toFixed(5)} · OpenStreetMap`;
+        doc.fillColor(MUTED).font('Helvetica').fontSize(5.5).text(gpsText, mapX, mapY + mapH + 3, { width: mapW, align: 'left' });
     }
 
-    return y + CARD_H + 15;
+    return CARD_H;
 }
 
 function v2_summaryTable(doc, cols, rows, startY) {
@@ -225,6 +261,7 @@ function v2_summaryTable(doc, cols, rows, startY) {
         cols.forEach(c => { doc.text(c.label, x, atY + 9, { width: c.w - 8 }); x += c.w; });
         return atY + TH + GAP;
     };
+    if (y + TH + RH > PH - BOT) { doc.addPage(); y = v2_pageHeaderRepeat(doc); }
     y = drawTH(y);
     rows.forEach(row => {
         if (y + RH > PH - BOT) { doc.addPage(); y = v2_pageHeaderRepeat(doc); y = drawTH(y); }
@@ -241,6 +278,32 @@ function v2_summaryTable(doc, cols, rows, startY) {
 
 function formatGB(date) {
     return new Date(date).toLocaleString('en-GB', { hour12: false }).replace(',', '');
+}
+
+async function renderGridLogs(doc, records, assetMap, startY, headerFn) {
+    const CARD_W = (CW - 15) / 2;
+    const CARD_H = 180;
+    const GAP = 15;
+    let y = startY;
+
+    for (let i = 0; i < records.length; i++) {
+        const col = i % 2;
+        const x = ML + col * (CARD_W + GAP);
+
+        // Check for page break (on new row start or if both columns overflow)
+        if (col === 0 && (y + CARD_H + 20 > PH - BOT)) {
+            doc.addPage();
+            y = headerFn(doc);
+        }
+
+        await v2_logCard(doc, records[i], y, x, CARD_W, i, assetMap);
+
+        // Move Y only after second column
+        if (col === 1 || i === records.length - 1) {
+            y += CARD_H + GAP;
+        }
+    }
+    return y;
 }
 
 exports.generateDailyLog = async (output, date, records) => {
@@ -260,13 +323,8 @@ exports.generateDailyLog = async (output, date, records) => {
 
         doc.addPage();
         y = v2_pageHeader(doc, `Logs: ${date}`, 'Photos & Coordinates');
-        for (let i = 0; i < records.length; i++) {
-            y = await v2_logCard(doc, records[i], [
-                { label: 'Site', value: records[i].site_name },
-                { label: 'Status', value: records[i].status },
-                { label: 'Notes', value: records[i].notes }
-            ], y, i, assetMap);
-        }
+        await renderGridLogs(doc, records, assetMap, y, v2_pageHeaderRepeat);
+
         doc.end();
     } finally { cleanupAssets(assetMap); }
 };
@@ -292,14 +350,8 @@ exports.generateEmployeeLog = async (output, employeeName, records, empData = {}
         ], y, assetMap);
 
         y = v2_heading(doc, 'Activity History', y);
-        for (let i = 0; i < records.length; i++) {
-            y = await v2_logCard(doc, records[i], [
-                { label: 'Date', value: records[i].date },
-                { label: 'Site', value: records[i].site_name },
-                { label: 'Status', value: records[i].status },
-                { label: 'Notes', value: records[i].notes }
-            ], y, i, assetMap);
-        }
+        await renderGridLogs(doc, records, assetMap, y, v2_pageHeaderRepeat);
+
         doc.end();
     } finally { cleanupAssets(assetMap); }
 };
@@ -324,14 +376,8 @@ exports.generateSiteLog = async (output, siteName, records, siteData = {}) => {
         ], y, assetMap);
 
         y = v2_heading(doc, 'Attendance Log', y);
-        for (let i = 0; i < records.length; i++) {
-            y = await v2_logCard(doc, records[i], [
-                { label: 'Employee', value: records[i].employee_name },
-                { label: 'Date', value: records[i].date },
-                { label: 'Time', value: records[i].time },
-                { label: 'Notes', value: records[i].notes }
-            ], y, i, assetMap);
-        }
+        await renderGridLogs(doc, records, assetMap, y, v2_pageHeaderRepeat);
+
         doc.end();
     } finally { cleanupAssets(assetMap); }
 };
@@ -356,14 +402,8 @@ exports.generateMonthlyEmployeeLog = async (output, employeeName, monthYear, rec
         ], y, assetMap);
 
         y = v2_heading(doc, 'Daily Logs', y);
-        for (let i = 0; i < records.length; i++) {
-            y = await v2_logCard(doc, records[i], [
-                { label: 'Date', value: records[i].date },
-                { label: 'Site', value: records[i].site_name },
-                { label: 'Time', value: records[i].time },
-                { label: 'Status', value: records[i].status }
-            ], y, i, assetMap);
-        }
+        await renderGridLogs(doc, records, assetMap, y, v2_pageHeaderRepeat);
+
         doc.end();
     } finally { cleanupAssets(assetMap); }
 };

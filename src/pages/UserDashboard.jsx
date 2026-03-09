@@ -9,6 +9,7 @@ import {
     TrendingUp, Calendar, Clock, FileText, Camera, ChevronRight
 } from 'lucide-react'
 import { Translate } from '../utils/translateHelper'
+import { requestNotificationPermission } from '../utils/pushNotification'
 import './UserDashboard.css'
 
 const getApiBase = () => {
@@ -29,17 +30,17 @@ function getGreeting() {
 const DashboardSkeleton = () => (
     <div className="page-content" style={{ maxWidth: 800 }}>
         {/* Hero skeleton */}
-        <div className="skeleton skeleton-card" style={{ height: 160, borderRadius: 'var(--radius-xl)' }} />
+        <div className="skeleton" style={{ height: 160, borderRadius: 'var(--radius-xl)', marginBottom: '1.5rem' }} />
         {/* Stats row skeleton */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem' }}>
-            {[...Array(3)].map((_, i) => <div key={i} className="skeleton skeleton-card" style={{ height: 80 }} />)}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 100, borderRadius: 'var(--radius-lg)' }} />)}
         </div>
         {/* Week skeleton */}
-        <div className="skeleton skeleton-card" style={{ height: 100 }} />
+        <div className="skeleton" style={{ height: 120, borderRadius: 'var(--radius-lg)', marginBottom: '1.5rem' }} />
         {/* Table skeleton */}
-        <div className="section-card" style={{ padding: '1rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <div className="skeleton skeleton-title" style={{ width: '40%', marginBottom: 8 }} />
-            {[...Array(3)].map((_, i) => <div key={i} className="skeleton skeleton-row" style={{ animationDelay: `${i * 0.07}s` }} />)}
+        <div className="section-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            <div className="skeleton" style={{ width: '40%', height: 20, marginBottom: 8, borderRadius: 4 }} />
+            {[...Array(3)].map((_, i) => <div key={i} className="skeleton" style={{ height: 48, borderRadius: 8, opacity: 1 - i * 0.2 }} />)}
         </div>
     </div>
 )
@@ -54,8 +55,9 @@ export function UserDashboard() {
     // Live clock — update every minute
     useEffect(() => {
         const tick = setInterval(() => setNow(new Date()), 60000)
+        requestNotificationPermission(currentUser.id)
         return () => clearInterval(tick)
-    }, [])
+    }, [currentUser.id])
 
     const fetchData = useCallback(async () => {
         try {
@@ -93,12 +95,6 @@ export function UserDashboard() {
         return { d, iso: localStr, present: attDates.has(localStr), today: isToday(d) }
     })
 
-    // Monthly calendar
-    const monthStart = startOfMonth(now)
-    const monthDays = eachDayOfInterval({ start: monthStart, end: now })
-    const presentDays = monthDays.filter(d => attDates.has(format(d, 'yyyy-MM-dd'))).length
-    const totalWorkDays = monthDays.filter(d => d.getDay() !== 0 && d.getDay() !== 6).length
-    const attendanceRate = totalWorkDays > 0 ? Math.round((presentDays / totalWorkDays) * 100) : 0
 
     const todayPhoto = todayRecord?.photo_url
         ? (todayRecord.photo_url.startsWith('http') ? todayRecord.photo_url : `${API_BASE}${todayRecord.photo_url}`)
@@ -170,10 +166,6 @@ export function UserDashboard() {
                                         </span>
                                     </div>
                                 )}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', opacity: 0.85 }}>
-                                    <TrendingUp size={12} />
-                                    <span style={{ fontWeight: 600 }}>{attendanceRate}% {format(now, 'MMMM')}</span>
-                                </div>
                             </div>
                         </div>
 
@@ -237,67 +229,9 @@ export function UserDashboard() {
                     </div>
                 </div>
 
-                {/* ── Monthly Attendance ── */}
-                <div className="section-card anim-in anim-delay-3">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <h3 className="section-title" style={{ margin: 0 }}>{format(now, 'MMMM')} Attendance</h3>
-                        <span style={{
-                            fontWeight: 800, fontSize: '1rem',
-                            color: attendanceRate >= 75 ? 'var(--success)' : attendanceRate >= 50 ? 'var(--warning)' : 'var(--danger)'
-                        }}>
-                            {attendanceRate}%
-                        </span>
-                    </div>
-                    <div className="progress-bar" style={{ marginBottom: '0.75rem' }}>
-                        <div className="progress-fill" style={{
-                            width: `${attendanceRate}%`,
-                            background: attendanceRate >= 75
-                                ? 'linear-gradient(90deg, #10b981, #34d399)'
-                                : attendanceRate >= 50
-                                    ? 'linear-gradient(90deg, #f59e0b, #fcd34d)'
-                                    : 'linear-gradient(90deg, #ef4444, #fca5a5)',
-                        }} />
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                        {monthDays.map(d => {
-                            const localStr = format(d, 'yyyy-MM-dd')
-                            const present = attDates.has(localStr)
-                            const isWeekend = d.getDay() === 0 || d.getDay() === 6
-                            const isTod = isToday(d)
-                            return (
-                                <div
-                                    key={localStr}
-                                    title={`${format(d, 'dd MMM')}${present ? ' — Present' : isWeekend ? ' — Weekend' : ' — Absent'}`}
-                                    style={{
-                                        width: 22, height: 22, borderRadius: 4,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: '0.6rem', fontWeight: 600,
-                                        background: present ? 'var(--success-bg)' : isWeekend ? 'transparent' : 'var(--danger-bg)',
-                                        color: present ? 'var(--success)' : isWeekend ? 'var(--text-muted)' : 'var(--danger)',
-                                        border: isTod ? '1.5px solid var(--brand-primary)' : '1px solid transparent',
-                                        opacity: isWeekend ? 0.4 : 1,
-                                    }}
-                                >
-                                    {format(d, 'd')}
-                                </div>
-                            )
-                        })}
-                    </div>
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.65rem', fontSize: '0.67rem', color: 'var(--text-muted)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <div style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--success-bg)', border: '1px solid var(--success-border)' }} /> Present
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <div style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--danger-bg)', border: '1px solid var(--danger-border)' }} /> Absent
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <div style={{ width: 10, height: 10, borderRadius: 2, border: '1.5px solid var(--brand-primary)' }} /> Today
-                        </span>
-                    </div>
-                </div>
 
                 {/* ── Assigned Sites ── */}
-                <div className="section-card anim-in anim-delay-4">
+                <div className="section-card anim-in anim-delay-3">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
                         <h3 className="section-title" style={{ margin: 0 }}>{t('nav.update_progress') || 'Update Progress'}</h3>
                         <span className="badge badge-info">{assignedSites.length}</span>
@@ -352,7 +286,7 @@ export function UserDashboard() {
 
                 {/* ── Recent Attendance ── */}
                 {recentAtt.length > 0 && (
-                    <div className="section-card anim-in anim-delay-5" style={{ padding: 0 }}>
+                    <div className="section-card anim-in anim-delay-4" style={{ padding: 0 }}>
                         <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h3 className="section-title" style={{ margin: 0 }}>{t('section.report_history')}</h3>
                             <Link to="/history" style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.78rem', color: 'var(--brand-primary)', textDecoration: 'none', fontWeight: 700 }}>

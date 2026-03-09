@@ -15,9 +15,10 @@ const API_BASE = API_BASE_CORE.endsWith('/api') ? API_BASE_CORE.slice(0, -4) : A
 
 function HistorySkeleton() {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1.5rem' }}>
+            <div className="skeleton" style={{ width: '30%', height: 20, marginBottom: 8, borderRadius: 4 }} />
             {[...Array(5)].map((_, i) => (
-                <div key={i} className="skeleton skeleton-row" style={{ animationDelay: `${i * 0.07}s` }} />
+                <div key={i} className="skeleton" style={{ height: 60, borderRadius: 12, opacity: 1 - i * 0.15 }} />
             ))}
         </div>
     )

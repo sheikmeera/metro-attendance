@@ -168,6 +168,40 @@ async function generateAllReportsBatch() {
     await syncToDrive();
 }
 
+const Notification = require('./controllers/notificationController');
+
+/**
+ * Sends reminders to employees who haven't reported yet today
+ */
+async function sendDailyReminders() {
+    const today = new Date().toISOString().split('T')[0];
+    console.log(`[Automation] Checking for missing reports on ${today}...`);
+
+    try {
+        // Find all active employees
+        const employees = await Employee.find({ status: 'active', role: 'employee' }).lean();
+
+        // Find those who already reported today
+        const reportedIds = await Attendance.find({ date: today }).distinct('employee_id');
+        const reportedSet = new Set(reportedIds);
+
+        const missing = employees.filter(emp => !reportedSet.has(emp.id));
+
+        console.log(`[Automation] Sending reminders to ${missing.length} employees.`);
+
+        for (const emp of missing) {
+            await Notification.sendToUser(emp.id, {
+                title: 'Report Reminder ⏰',
+                body: "Don't forget to submit your report from the site today!",
+                icon: '/pwa-192x192.png',
+                data: { url: '/report' }
+            });
+        }
+    } catch (err) {
+        console.error('[Automation] Reminder process failed:', err);
+    }
+}
+
 /**
  * Initializes schedules
  */
@@ -175,13 +209,19 @@ function initAutomation() {
     // DB Backup: Every day at 1:00 AM
     cron.schedule('0 1 * * *', () => {
         console.log('[Automation] Running scheduled DB backup logger...');
-        backupDatabase(); // Won't do local copy anymore, but will log.
+        backupDatabase();
     });
 
     // PDF Batch: Every day at 11:50 PM
     cron.schedule('50 23 * * *', () => {
         console.log('[Automation] Running scheduled PDF batch generation...');
         generateAllReportsBatch();
+    });
+
+    // Daily Reminder: 8:00 AM
+    cron.schedule('0 8 * * *', () => {
+        console.log('[Automation] Running morning reminder at 8:00 AM...');
+        sendDailyReminders();
     });
 
     console.log('[Automation] Cron jobs initialized.');
