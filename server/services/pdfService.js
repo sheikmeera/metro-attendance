@@ -351,7 +351,7 @@ function generateEmployeeLog(output, employeeName, records, empData = {}) {
             doc.pipe(output)
             let y = pageHeader(doc, `Employee Report: ${employeeName}`, `Generated: ${formatDateTime(new Date())} . ${records.length} record(s)`)
             y = heading(doc, 'Employee Profile', y)
-            y = profileCard(doc, [
+            y = await profileCard(doc, [
                 { label: 'Full Name', value: empData.name || employeeName },
                 { label: 'Employee ID', value: empData.id || records[0]?.employee_id },
                 { label: 'Department', value: empData.department },
@@ -393,7 +393,7 @@ function generateSiteLog(output, siteName, records, siteData = {}) {
             doc.pipe(output)
             let y = pageHeader(doc, `Site Report: ${siteName}`, `Generated: ${formatDateTime(new Date())} . ${records.length} record(s)`)
             y = heading(doc, 'Site Profile', y)
-            y = profileCard(doc, [
+            y = await profileCard(doc, [
                 { label: 'Site Name', value: siteData.site_name || siteName },
                 { label: 'Client', value: siteData.client_name },
                 { label: 'Location', value: siteData.location_name },
@@ -482,7 +482,7 @@ function generateMonthlyEmployeeLog(output, employeeName, monthYear, records, em
             doc.pipe(output)
             let y = pageHeader(doc, `Monthly Employee Report: ${employeeName}`, `Period: ${monthYear} . Generated: ${formatDateTime(new Date())} . ${records.length || 0} record(s)`)
             y = heading(doc, 'Employee Profile', y)
-            y = profileCard(doc, [{ label: 'Full Name', value: empData.name || employeeName }, { label: 'Employee ID', value: empData.id || records[0]?.employee_id }, { label: 'Department', value: empData.department }, { label: 'Status', value: empData.status || 'active' }, { label: 'avatar', value: empData.avatar || records[0]?.avatar, isAvatar: true }], y, tempFiles)
+            y = await profileCard(doc, [{ label: 'Full Name', value: empData.name || employeeName }, { label: 'Employee ID', value: empData.id || records[0]?.employee_id }, { label: 'Department', value: empData.department }, { label: 'Status', value: empData.status || 'active' }, { label: 'avatar', value: empData.avatar || records[0]?.avatar, isAvatar: true }], y, tempFiles)
             if (records.length === 0) {
                 doc.fillColor(MUTED).fontSize(10).text('No attendance records found for this month.', ML, y)
                 doc.end(); resolve(); return
