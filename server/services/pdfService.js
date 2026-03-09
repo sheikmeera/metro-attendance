@@ -10,7 +10,7 @@ const PDFDocument = require('pdfkit')
 const fetch = require('node-fetch')
 const path = require('path')
 const fs = require('fs')
-
+const os = require('os')
 
 // ── Paths ─────────────────────────────────────────────────────
 const LOGO_PATH = (() => {
@@ -19,10 +19,12 @@ const LOGO_PATH = (() => {
         path.join(__dirname, '../logo.jpeg'),
         path.join(__dirname, '../../public/logo.png'),
         path.join(__dirname, '../logo.png'),
+        path.join(process.cwd(), 'public/logo.jpeg'),
+        path.join(process.cwd(), 'server/logo.jpeg'),
     ]
     return candidates.find(p => fs.existsSync(p)) || ''
 })()
-const UPLOADS_DIR = path.join(__dirname, '../uploads')
+const UPLOADS_DIR = os.tmpdir()
 
 // ── Palette ───────────────────────────────────────────────────
 const AMBER = '#f59e0b'
