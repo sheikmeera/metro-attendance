@@ -22,28 +22,8 @@ router.use((req, res, next) => {
     next()
 })
 
-const { CloudinaryStorage } = require('multer-storage-cloudinary')
-const cloudinary = require('cloudinary').v2
-
-// Configure Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-const avatarStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'metro_avatars',
-        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        public_id: (req, file) => `avatar_${Date.now()}`,
-    },
-});
+const { avatarStorage } = require('../utils/cloudinary')
 const uploadAvatar = multer({ storage: avatarStorage })
-
-// Ensure dir exists
-if (!fs.existsSync('uploads/avatars')) fs.mkdirSync('uploads/avatars', { recursive: true })
 
 // ── Employee Routes ──────────────────────────────────────
 router.get('/employees', empCtrl.getAll)

@@ -39,11 +39,7 @@ exports.submitReport = async (req, res) => {
 
         let photo_url = null
         if (req.file) {
-            if (req.file.path.startsWith('http')) {
-                photo_url = req.file.path
-            } else {
-                photo_url = `/uploads/${req.file.filename}`
-            }
+            photo_url = req.file.path
         }
 
         // Use IST-aware date (UTC+5:30) for accurate day boundaries in India

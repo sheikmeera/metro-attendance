@@ -14,27 +14,11 @@ const SiteAssignment = require('../models/SiteAssignment')
 const Attendance = require('../models/Attendance')
 const Report = require('../models/Report')
 
-const { CloudinaryStorage } = require('multer-storage-cloudinary')
-const cloudinary = require('cloudinary').v2
-
-// Configure Cloudinary
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
+const { reportStorage } = require('../utils/cloudinary')
 
 // Multer + Cloudinary — save uploaded photos to cloud
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'metro_reports',
-        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        public_id: (req, file) => `report_${Date.now()}_${Math.round(Math.random() * 1e6)}`,
-    },
-});
 const upload = multer({
-    storage,
+    storage: reportStorage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) cb(null, true)

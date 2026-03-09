@@ -24,11 +24,6 @@ app.use((req, res, next) => {
     next()
 })
 
-// ── Static: serve uploaded images ──────────────────────────
-app.use('/uploads', (req, res, next) => {
-    console.log(`[Static] Request for image: /uploads${req.url}`);
-    next();
-}, express.static(path.join(__dirname, 'uploads')));
 
 // ── Health Check & Keep-Alive Ping (Define BEFORE other routes) ──
 app.get('/api/health', (req, res) => {

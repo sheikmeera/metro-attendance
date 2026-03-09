@@ -46,12 +46,7 @@ exports.create = async (req, res) => {
         // Use uploaded file path (Cloudinary URL or formatted local path)
         let avatarPath = '👤'
         if (req.file) {
-            // Check if multer returned a remote URL (e.g., Cloudinary), otherwise use local relative path
-            if (req.file.path.startsWith('http')) {
-                avatarPath = req.file.path
-            } else {
-                avatarPath = `/uploads/avatars/${req.file.filename}`
-            }
+            avatarPath = req.file.path
         }
 
         await Employee.create({
@@ -83,11 +78,7 @@ exports.update = async (req, res) => {
         }
 
         if (req.file) {
-            if (req.file.path.startsWith('http')) {
-                emp.avatar = req.file.path
-            } else {
-                emp.avatar = `/uploads/avatars/${req.file.filename}`
-            }
+            emp.avatar = req.file.path
         }
 
         if (name) emp.name = name
