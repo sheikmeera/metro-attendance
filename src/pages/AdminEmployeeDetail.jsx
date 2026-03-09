@@ -10,6 +10,7 @@ import {
     FileText, Camera, MessageSquare
 } from 'lucide-react'
 import { Translate } from '../utils/translateHelper'
+import './AdminEmployeeDetail.css'
 
 const getApiBase = () => {
     if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
@@ -18,54 +19,6 @@ const getApiBase = () => {
 }
 const API_BASE_CORE = getApiBase()
 const BASE_URL = API_BASE_CORE.endsWith('/api') ? API_BASE_CORE.slice(0, -4) : API_BASE_CORE
-const API_BASE = API_BASE_CORE
-
-const CSS = `
-    .ed { display: flex; flex-direction: column; gap: 1.5rem; padding: 1.5rem; width: 100%; max-width: 940px; margin: 0 auto; }
-    .ed-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem; }
-    .ed-profile { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; position: relative; box-shadow: var(--shadow-card); }
-    .ed-cover { height: 160px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); position: relative; }
-    .ed-avatar-anchor { position: absolute; top: 100px; left: 2.5rem; z-index: 10; }
-    .ed-avatar-frame { width: 110px; height: 110px; border-radius: 20px; background: var(--bg-surface); padding: 5px; border: 1px solid var(--border); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-    .ed-avatar-inner { width: 100%; height: 100%; border-radius: 16px; overflow: hidden; background: var(--bg-base); display: flex; align-items: center; justify-content: center; }
-    .ed-avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
-    .ed-avatar-status { position: absolute; bottom: 2px; right: 2px; width: 24px; height: 24px; border-radius: 50%; border: 4px solid var(--bg-surface); background: var(--success); z-index: 2; }
-    .ed-avatar-status.inactive { background: var(--danger); }
-    .ed-profile-body { padding: 60px 2.5rem 2rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; }
-    .ed-info-main { flex: 1; display: flex; flex-direction: column; gap: 0.65rem; }
-    .ed-name { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.03em; margin: 0; color: var(--text-primary); line-height: 1.1; }
-    .ed-meta-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.25rem; }
-    .ed-chip { display: flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; border-radius: 10px; background: var(--glass-bg); border: 1px solid var(--border); font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); }
-    .ed-chip b { color: var(--brand-primary); font-family: monospace; font-size: 0.85rem; }
-    .ed-contact-row { display: flex; flex-wrap: wrap; gap: 1.25rem; margin-top: 0.5rem; }
-    .ed-contact-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
-    .ed-profile-actions { display: flex; gap: 0.75rem; align-items: center; }
-    .ed-stats-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); border-top: 1px solid var(--border); background: rgba(255, 255, 255, 0.015); }
-    .ed-stat-cell { padding: 1.5rem; text-align: center; border-right: 1px solid var(--border); }
-    .ed-stat-cell:last-child { border-right: none; }
-    .ed-stat-val { font-size: 1.6rem; font-weight: 800; color: var(--text-primary); display: block; line-height: 1; }
-    .ed-stat-lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.5rem; font-weight: 700; }
-    .ed-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; }
-    .ed-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; }
-    .ed-card-head { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.02); }
-    .ed-card-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); display: flex; align-items: center; gap: 0.6rem; }
-    .ed-att-row { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1.5rem; border-bottom: 1px solid var(--border); }
-    .ed-date-chip { width: 44px; height: 44px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(255,255,255,0.02); }
-    .ed-site-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
-    .ed-report-row { display: flex; gap: 1.25rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); }
-    .ed-report-thumb { width: 64px; height: 64px; border-radius: 10px; background: var(--bg-surface); border: 1px solid var(--border); flex-shrink: 0; overflow: hidden; position: relative; }
-    .ed-report-thumb img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
-    @media (max-width: 950px) { .ed-grid { grid-template-columns: 1fr; } }
-    @media (max-width: 768px) {
-        .ed { padding: 0.75rem; }
-        .ed-profile-body { flex-direction: column; padding: 70px 1.5rem 1.5rem; gap: 1.5rem; }
-        .ed-avatar-anchor { left: 1.5rem; }
-        .ed-profile-actions { width: 100%; justify-content: flex-start; }
-        .ed-stats-strip { grid-template-columns: 1fr 1fr; }
-        .ed-stat-cell:nth-child(even) { border-right: none; }
-        .ed-stat-cell:nth-child(n+3) { border-top: 1px solid var(--border); }
-    }
-`;
 
 export function AdminEmployeeDetail() {
     const { id } = useParams()
@@ -181,8 +134,6 @@ export function AdminEmployeeDetail() {
     const isActive = emp.status === 'active'
     const uniqueDays = [...new Set(attendance.map(r => r.date))]
     const totalPresent = uniqueDays.length
-    // Average attendance could be calculated against total working days, 
-    // but for now 100% just shows they are active.
     const attendancePct = attendance.length > 0 ? 100 : 0
 
     const uniqueSites = Object.values(
@@ -199,8 +150,7 @@ export function AdminEmployeeDetail() {
 
     return (
         <div className="page-shell page-enter">
-            <style>{CSS}</style>
-            <div className="page-content ed">
+            <div className="page-content ed-container">
 
                 {/* ══ BREADCRUMB BAR ══ */}
                 <div className="ed-topbar">
@@ -217,42 +167,42 @@ export function AdminEmployeeDetail() {
                 </div>
 
                 {/* ══ PROFILE HERO ══ */}
-                <div className="ed-profile">
-                    <div className="ed-cover" style={{ background: coverBg }} />
+                <div className="ed-profile-card">
+                    <div className="ed-cover-photo" style={{ background: coverBg }} />
 
-                    <div className="ed-avatar-anchor">
+                    <div className="ed-avatar-wrapper">
                         <div className="ed-avatar-frame">
                             <div className="ed-avatar-inner">
                                 {renderAvatar(emp.avatar, '100%')}
                             </div>
-                            <div className={`ed-avatar-status ${isActive ? 'active' : 'inactive'}`} />
+                            <div className={`ed-status-indicator ${isActive ? 'active' : 'inactive'}`} />
                         </div>
                     </div>
 
-                    <div className="ed-profile-body">
-                        <div className="ed-info-main">
-                            <h1 className="ed-name"><Translate text={emp.name} /></h1>
-                            <div className="ed-meta-row">
-                                <span className="ed-chip">ID: <b>{emp.id}</b></span>
+                    <div className="ed-profile-content">
+                        <div className="ed-main-info">
+                            <h1 className="ed-employee-name"><Translate text={emp.name} /></h1>
+                            <div className="ed-badge-row">
+                                <span className="ed-info-pill">ID: <b>{emp.id}</b></span>
                                 {emp.department && (
-                                    <span className="ed-chip"><Briefcase size={12} /><Translate text={emp.department} /></span>
+                                    <span className="ed-info-pill"><Briefcase size={12} /><Translate text={emp.department} /></span>
                                 )}
-                                <span className="ed-chip"><Shield size={12} />{emp.role || 'Employee'}</span>
+                                <span className="ed-info-pill"><Shield size={12} />{emp.role || 'Employee'}</span>
                                 {emp.created_at && (
-                                    <span className="ed-chip"><Calendar size={12} />Joined {format(new Date(emp.created_at), 'dd MMM yyyy')}</span>
+                                    <span className="ed-info-pill"><Calendar size={12} />Joined {format(new Date(emp.created_at), 'dd MMM yyyy')}</span>
                                 )}
                             </div>
-                            <div className="ed-contact-row">
+                            <div className="ed-contact-list">
                                 {emp.phone && (
-                                    <div className="ed-contact-item"><Phone size={14} />{emp.phone}</div>
+                                    <div className="ed-contact-link"><Phone size={14} />{emp.phone}</div>
                                 )}
                                 {emp.email && (
-                                    <div className="ed-contact-item"><Mail size={14} />{emp.email}</div>
+                                    <div className="ed-contact-link"><Mail size={14} />{emp.email}</div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="ed-profile-actions">
+                        <div className="ed-action-buttons">
                             <button className="btn btn-primary" onClick={openEdit} style={{ gap: '.5rem' }}>
                                 <Edit3 size={15} /> Edit
                             </button>
@@ -263,42 +213,42 @@ export function AdminEmployeeDetail() {
                     </div>
 
                     <div className="ed-stats-strip">
-                        <div className="ed-stat-cell">
-                            <span className="ed-stat-val">{attendance.length}</span>
-                            <span className="ed-stat-lbl">Check-ins</span>
+                        <div className="ed-stat-box">
+                            <span className="ed-stat-value">{attendance.length}</span>
+                            <span className="ed-stat-label">Check-ins</span>
                         </div>
-                        <div className="ed-stat-cell">
-                            <span className="ed-stat-val">{totalPresent}</span>
-                            <span className="ed-stat-lbl">Days Present</span>
+                        <div className="ed-stat-box">
+                            <span className="ed-stat-value">{totalPresent}</span>
+                            <span className="ed-stat-label">Days Present</span>
                         </div>
-                        <div className="ed-stat-cell">
-                            <span className="ed-stat-val">{uniqueSites.length}</span>
-                            <span className="ed-stat-lbl">Sites</span>
+                        <div className="ed-stat-box">
+                            <span className="ed-stat-value">{uniqueSites.length}</span>
+                            <span className="ed-stat-label">Sites</span>
                         </div>
-                        <div className="ed-stat-cell">
-                            <span className="ed-stat-val">{reports.length}</span>
-                            <span className="ed-stat-lbl">Reports</span>
+                        <div className="ed-stat-box">
+                            <span className="ed-stat-value">{reports.length}</span>
+                            <span className="ed-stat-label">Reports</span>
                         </div>
-                        <div className="ed-stat-cell">
-                            <span className="ed-stat-val">{attendancePct}%</span>
-                            <span className="ed-stat-lbl">Attendance</span>
+                        <div className="ed-stat-box">
+                            <span className="ed-stat-value">{attendancePct}%</span>
+                            <span className="ed-stat-label">Attendance</span>
                         </div>
                     </div>
                 </div>
 
                 {/* ══ CONTENT GRID ══ */}
-                <div className="ed-grid">
+                <div className="ed-details-grid">
 
                     {/* Sites Card */}
-                    <div className="ed-card">
-                        <div className="ed-card-head">
+                    <div className="ed-content-card">
+                        <div className="ed-card-header">
                             <span className="ed-card-title"><Building2 size={14} /> Sites Attended</span>
                         </div>
                         {uniqueSites.length === 0 ? (
                             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No sites attended.</div>
                         ) : (
                             uniqueSites.map((site, i) => (
-                                <div key={i} className="ed-site-row">
+                                <div key={i} className="ed-site-item">
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <Building2 size={16} style={{ opacity: 0.6 }} />
                                         <span style={{ fontWeight: 600 }}><Translate text={site.name} /></span>
@@ -310,8 +260,8 @@ export function AdminEmployeeDetail() {
                     </div>
 
                     {/* Attendance Card */}
-                    <div className="ed-card">
-                        <div className="ed-card-head">
+                    <div className="ed-content-card">
+                        <div className="ed-card-header">
                             <span className="ed-card-title"><Activity size={14} /> Recent Check-ins</span>
                         </div>
                         <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -319,8 +269,8 @@ export function AdminEmployeeDetail() {
                                 <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No records found.</div>
                             ) : (
                                 attendance.slice(0, 20).map((r, i) => (
-                                    <div key={i} className="ed-att-row">
-                                        <div className="ed-date-chip">
+                                    <div key={i} className="ed-attendance-row">
+                                        <div className="ed-date-marker">
                                             <span style={{ fontSize: '1rem', fontWeight: 800 }}>{format(new Date(r.date), 'dd')}</span>
                                             <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>{format(new Date(r.date), 'MMM')}</span>
                                         </div>
@@ -344,8 +294,8 @@ export function AdminEmployeeDetail() {
                 </div>
 
                 {/* ══ REPORTING LOGS ══ */}
-                <div className="ed-card">
-                    <div className="ed-card-head">
+                <div className="ed-content-card">
+                    <div className="ed-card-header">
                         <span className="ed-card-title"><FileText size={14} /> Reporting History</span>
                     </div>
                     <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
@@ -353,8 +303,8 @@ export function AdminEmployeeDetail() {
                             <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}> no reports filed.</div>
                         ) : (
                             reports.map((r, i) => (
-                                <div key={i} className="ed-report-row">
-                                    <div className="ed-report-thumb">
+                                <div key={i} className="ed-report-item">
+                                    <div className="ed-report-image">
                                         {r.photo_url ? (
                                             <img src={r.photo_url.startsWith('http') ? r.photo_url : `${BASE_URL}${r.photo_url.startsWith('/') ? r.photo_url : `/${r.photo_url}`}`}
                                                 alt="Report"
@@ -394,7 +344,7 @@ export function AdminEmployeeDetail() {
             {/* ══ EDIT MODAL ══ */}
             {showEditModal && (
                 <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditModal(false)}>
-                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', width: '100%', maxWidth: 500, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+                    <div className="ed-modal-box" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-xl)', width: '100%', maxWidth: 500, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
                         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Edit Employee</h2>
                             <button className="btn btn-ghost" onClick={() => setShowEditModal(false)}><X size={20} /></button>
