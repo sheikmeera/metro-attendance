@@ -179,6 +179,9 @@
 .site-card-info {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .site-card-name {
@@ -188,6 +191,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .site-card-location {
@@ -196,14 +201,16 @@
     gap: 0.25rem;
     font-size: 0.65rem;
     color: var(--text-muted);
-    margin-top: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .site-card-client {
     font-size: 0.6rem;
     color: var(--text-muted);
-    margin-top: 1px;
     font-style: italic;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .site-card-arrow {
