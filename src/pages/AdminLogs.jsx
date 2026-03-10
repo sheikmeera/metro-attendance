@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useApp } from '../context/AppContext'
 import client from '../api/client'
 import { format } from 'date-fns'
-import { FileText, Download, X, Trash2, Edit3, Image as ImageIcon, MapPin } from 'lucide-react'
+import { FileText, Download, X, Trash2, Eye, Image as ImageIcon, MapPin, Clock, User, CheckCircle2 } from 'lucide-react'
 import { renderAvatar } from '../utils/avatarHelper'
 import { Translate } from '../utils/translateHelper'
 
@@ -22,6 +23,7 @@ export function AdminLogs() {
     const [filterDate, setFilterDate] = useState('')
     const [filterEmp, setFilterEmp] = useState('')
     const [filterSite, setFilterSite] = useState('')
+    const [detailRec, setDetailRec] = useState(null) // popup detail record
 
     const load = () => {
         Promise.all([
@@ -37,16 +39,17 @@ export function AdminLogs() {
 
     const handleDelete = async (rec) => {
         showToast(
-            `Reset report for ${rec.employee_name} on ${rec.date}?`,
+            `Delete report for ${rec.employee_name} on ${rec.date}?`,
             'info',
             {
                 onConfirm: async () => {
                     try {
-                        await client.delete(`/admin/attendance/reset?id=${rec.id || rec._id}`);
-                        showToast('Report reset successfully.', 'success');
+                        await client.delete(`/admin/report/${rec.id || rec._id}`);
+                        showToast('Report deleted successfully.', 'success');
+                        setDetailRec(null);
                         load();
                     } catch (err) {
-                        showToast(err.response?.data?.error || 'Failed to reset report.', 'error');
+                        showToast(err.response?.data?.error || 'Failed to delete report.', 'error');
                     }
                 },
                 onCancel: () => showToast(null)
@@ -206,7 +209,7 @@ export function AdminLogs() {
                                         {filtered.map(rec => {
                                             const dt = parseReportTime(rec.report_time)
                                             return (
-                                                <tr key={rec.id}>
+                                                <tr key={rec.id} style={{ cursor: 'pointer' }} onClick={() => setDetailRec(rec)}>
                                                     <td>
                                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                             <span style={{ flexShrink: 0 }}>{renderAvatar(rec.avatar, '2rem')}</span>
@@ -228,7 +231,7 @@ export function AdminLogs() {
                                                     <td style={{ fontSize: '0.85rem' }}><Translate text={rec.site_name || '—'} /></td>
                                                     <td>
                                                         {rec.photo_url ? (
-                                                            <div className="img-preview-thumb" onClick={() => window.open(rec.photo_url.startsWith('http') ? rec.photo_url : `${API_BASE}${rec.photo_url}`, '_blank')}>
+                                                            <div className="img-preview-thumb" onClick={(e) => { e.stopPropagation(); window.open(rec.photo_url.startsWith('http') ? rec.photo_url : `${API_BASE}${rec.photo_url}`, '_blank') }}>
                                                                 <img
                                                                     src={rec.photo_url.startsWith('http') ? rec.photo_url : `${API_BASE}${rec.photo_url}`}
                                                                     alt="Capture"
@@ -242,7 +245,10 @@ export function AdminLogs() {
                                                     </td>
                                                     <td style={{ textAlign: 'right' }}>
                                                         <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0.3rem' }} title="Delete/Reset" onClick={() => handleDelete(rec)}>
+                                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0.3rem' }} title="View Details" onClick={(e) => { e.stopPropagation(); setDetailRec(rec) }}>
+                                                                <Eye size={14} color="var(--brand-primary)" />
+                                                            </button>
+                                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0.3rem' }} title="Delete" onClick={(e) => { e.stopPropagation(); handleDelete(rec) }}>
                                                                 <Trash2 size={14} color="var(--danger)" />
                                                             </button>
                                                         </div>
@@ -261,12 +267,13 @@ export function AdminLogs() {
                                     const photo = rec.photo_url ? (rec.photo_url.startsWith('http') ? rec.photo_url : `${API_BASE}${rec.photo_url}`) : null
 
                                     return (
-                                        <div key={rec.id} style={{
+                                        <div key={rec.id} onClick={() => setDetailRec(rec)} style={{
                                             padding: '1rem',
                                             borderBottom: '1px solid var(--border)',
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            gap: '0.75rem'
+                                            gap: '0.75rem',
+                                            cursor: 'pointer'
                                         }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                                 {renderAvatar(rec.avatar, '2.5rem')}
@@ -293,7 +300,7 @@ export function AdminLogs() {
                                                     <img
                                                         src={photo}
                                                         alt="Capture"
-                                                        onClick={() => window.open(photo, '_blank')}
+                                                        onClick={(e) => { e.stopPropagation(); window.open(photo, '_blank') }}
                                                         style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)' }}
                                                     />
                                                 )}
@@ -310,8 +317,11 @@ export function AdminLogs() {
                                             </div>
 
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.25rem' }}>
-                                                <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '0.7rem', fontWeight: 600 }} onClick={() => handleDelete(rec)}>
-                                                    <Trash2 size={13} style={{ marginRight: 4 }} /> {t('action.delete') || 'Reset'}
+                                                <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.7rem', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); setDetailRec(rec) }}>
+                                                    <Eye size={13} style={{ marginRight: 4 }} /> View
+                                                </button>
+                                                <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '0.7rem', fontWeight: 600 }} onClick={(e) => { e.stopPropagation(); handleDelete(rec) }}>
+                                                    <Trash2 size={13} style={{ marginRight: 4 }} /> {t('action.delete') || 'Delete'}
                                                 </button>
                                             </div>
                                         </div>
@@ -321,6 +331,151 @@ export function AdminLogs() {
                         </>
                     )}
                 </div>
+
+                {/* ── Detail Popup Modal (portalled to body) ── */}
+                {detailRec && createPortal((() => {
+                    const dt = parseReportTime(detailRec.report_time)
+                    const photo = detailRec.photo_url ? (detailRec.photo_url.startsWith('http') ? detailRec.photo_url : `${API_BASE}${detailRec.photo_url}`) : null
+                    return (
+                        <div className="modal-overlay" onClick={() => setDetailRec(null)} style={{
+                            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+                            zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+                        }}>
+                            <div onClick={e => e.stopPropagation()} style={{
+                                background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16,
+                                width: '100%', maxWidth: 520, maxHeight: '90dvh', overflowY: 'auto',
+                                boxShadow: '0 24px 64px rgba(0,0,0,0.3)', animation: 'fadeInUp 0.22s ease'
+                            }}>
+                                {/* Header */}
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '1rem 1.25rem', borderBottom: '1px solid var(--border)'
+                                }}>
+                                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>Report Details</h3>
+                                    <button onClick={() => setDetailRec(null)} style={{
+                                        background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)',
+                                        padding: '0.25rem', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}><X size={18} /></button>
+                                </div>
+
+                                {/* Body */}
+                                <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    {/* Employee info */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        {renderAvatar(detailRec.avatar, '3rem')}
+                                        <div>
+                                            <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                                                <Translate text={detailRec.employee_name} />
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                                                {detailRec.employee_id} · <Translate text={detailRec.department || '—'} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Info grid */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                                        <div style={{ background: 'var(--glass-bg)', borderRadius: 10, padding: '0.75rem', border: '1px solid var(--border)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
+                                                <Clock size={11} /> Date & Time
+                                            </div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                                                {dt ? format(dt, 'dd MMM yyyy') : '—'}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                {dt ? format(dt, 'hh:mm a') : '—'}
+                                            </div>
+                                        </div>
+                                        <div style={{ background: 'var(--glass-bg)', borderRadius: 10, padding: '0.75rem', border: '1px solid var(--border)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
+                                                <MapPin size={11} /> Site
+                                            </div>
+                                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--brand-primary)' }}>
+                                                <Translate text={detailRec.site_name || '—'} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Verified status */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <CheckCircle2 size={15} color={detailRec.verified ? 'var(--success, #22c55e)' : 'var(--text-muted)'} />
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 600, color: detailRec.verified ? 'var(--success, #22c55e)' : 'var(--text-muted)' }}>
+                                            {detailRec.verified ? 'Verified' : 'Not Verified'}
+                                        </span>
+                                    </div>
+
+                                    {/* GPS coordinates */}
+                                    {(detailRec.latitude && detailRec.longitude) && (
+                                        <div style={{ background: 'var(--glass-bg)', borderRadius: 10, padding: '0.75rem', border: '1px solid var(--border)' }}>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
+                                                📍 GPS Location
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+                                                {detailRec.latitude.toFixed(6)}, {detailRec.longitude.toFixed(6)}
+                                            </div>
+                                            <a
+                                                href={`https://www.google.com/maps?q=${detailRec.latitude},${detailRec.longitude}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', marginTop: '0.3rem', display: 'inline-block' }}
+                                            >
+                                                Open in Google Maps ↗
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    {/* Photo */}
+                                    {photo && (
+                                        <div>
+                                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
+                                                📸 Captured Photo
+                                            </div>
+                                            <img
+                                                src={photo}
+                                                alt="Report capture"
+                                                onClick={() => window.open(photo, '_blank')}
+                                                style={{
+                                                    width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 10,
+                                                    border: '1px solid var(--border)', cursor: 'pointer'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Notes */}
+                                    <div>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
+                                            📝 Notes
+                                        </div>
+                                        <div style={{
+                                            fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6,
+                                            background: 'var(--glass-bg)', borderRadius: 8, padding: '0.75rem',
+                                            border: '1px solid var(--border)', minHeight: 40
+                                        }}>
+                                            {detailRec.notes || <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>No notes provided</span>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Footer actions */}
+                                <div style={{
+                                    display: 'flex', justifyContent: 'flex-end', gap: '0.5rem',
+                                    padding: '0.75rem 1.25rem', borderTop: '1px solid var(--border)'
+                                }}>
+                                    <button className="btn btn-ghost" onClick={() => setDetailRec(null)} style={{ fontSize: '0.8rem' }}>
+                                        Close
+                                    </button>
+                                    <button className="btn" onClick={() => handleDelete(detailRec)} style={{
+                                        fontSize: '0.8rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444',
+                                        border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', gap: '0.35rem'
+                                    }}>
+                                        <Trash2 size={13} /> Delete Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })(), document.body)}
             </div>
         </div>
     )
