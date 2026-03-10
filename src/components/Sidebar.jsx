@@ -60,7 +60,12 @@ export function Sidebar() {
                         <Menu size={20} />
                     </button>
                     <div className="mobile-brand" style={{ gap: '0.75rem' }}>
-                        <img src="/logo_v3_amber.png" alt="Metro" className="mobile-logo" style={{ padding: '2px' }} />
+                        <img
+                            src={theme === 'dark' ? "/logo_v3_amber.png" : "/logo_v3_light.png"}
+                            alt="Metro"
+                            className="mobile-logo"
+                            style={{ padding: '2px' }}
+                        />
                         <span className="mobile-title">Metro Electricals</span>
                     </div>
                     {/* Empty div for symmetry if needed, or user avatar */}
@@ -77,7 +82,11 @@ export function Sidebar() {
                 {/* Brand */}
                 <div className="sb-brand">
                     <div className="sb-logo-wrap" style={{ padding: '4px' }}>
-                        <img src="/logo_v3_amber.png" alt="Metro" className="sb-logo" />
+                        <img
+                            src={theme === 'dark' ? "/logo_v3_amber.png" : "/logo_v3_light.png"}
+                            alt="Metro"
+                            className="sb-logo"
+                        />
                     </div>
                     {!sidebarCollapsed && (
                         <div className="sb-brand-text">

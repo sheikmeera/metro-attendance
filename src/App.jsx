@@ -3,7 +3,9 @@ import { AppProvider, useApp } from './context/AppContext'
 import { Sidebar } from './components/Sidebar'
 import { BottomNav } from './components/BottomNav'
 import { Toast } from './components/Toast'
+import { SplashScreen } from './components/SplashScreen'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { useState, useEffect } from 'react'
 import { LoginPage } from './pages/LoginPage'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AdminLogs } from './pages/AdminLogs'
@@ -19,6 +21,14 @@ import { Settings } from './pages/Settings'
 
 export default function App() {
   const { currentUser, toast, sidebarCollapsed } = useApp()
+  const [isLaunching, setIsLaunching] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLaunching(false), 2000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isLaunching) return <SplashScreen />
 
   if (!currentUser) {
     return (

@@ -128,10 +128,10 @@ router.get('/dashboard', async (req, res) => {
 
         const [reportsThisMonth, presentThisMonth] = await Promise.all([
             Report.countDocuments({ employee_id: req.user.id, report_time: { $gte: backDate } }),
-            Attendance.countDocuments({ employee_id: req.user.id, created_at: { $gte: backDate } })
+            Attendance.distinct('date', { employee_id: req.user.id, created_at: { $gte: backDate } })
         ])
 
-        res.json({ todayAttendance, assignedSites, reportsThisMonth, presentThisMonth })
+        res.json({ todayAttendance, assignedSites, reportsThisMonth, presentThisMonth: presentThisMonth.length })
     } catch (err) {
         res.status(500).json({ error: err.message })
     }

@@ -32,6 +32,7 @@ export function UserReport() {
     const [notes, setNotes] = useState('')
     const [cameraActive, setCameraActive] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [aspectRatio, setAspectRatio] = useState(16 / 9)
 
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
@@ -116,6 +117,15 @@ export function UserReport() {
             streamRef.current = null
         }
         setCameraActive(false)
+    }
+
+    const handleLoadedMetadata = () => {
+        if (videoRef.current) {
+            const { videoWidth, videoHeight } = videoRef.current
+            if (videoWidth && videoHeight) {
+                setAspectRatio(videoWidth / videoHeight)
+            }
+        }
     }
 
     const capturePhoto = async () => {
@@ -312,8 +322,16 @@ export function UserReport() {
 
                         {!capturedImage ? (
                             <div className="inline-camera-container anim-in">
-                                <div className="inline-camera-preview-wrap">
-                                    <video ref={videoRef} autoPlay playsInline muted className="inline-video" />
+                                <div className="inline-camera-preview-wrap" style={{ aspectRatio: aspectRatio }}>
+                                    <video
+                                        ref={videoRef}
+                                        autoPlay
+                                        playsInline
+                                        muted
+                                        onLoadedMetadata={handleLoadedMetadata}
+                                        className="inline-video"
+                                        style={{ objectFit: 'contain' }}
+                                    />
 
                                     {gpsCoords && (
                                         <div className="gps-badge-overlay-inline">
