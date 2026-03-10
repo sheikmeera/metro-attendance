@@ -27,9 +27,17 @@ exports.login = async (req, res) => {
             role = 'admin'
         }
 
-        // Try employee (login by employee ID, password = PIN)
+        // Try employee (login by employee ID, Email, or Phone, password = PIN)
         if (!user) {
-            const emp = await Employee.findOne({ id: identifier.toUpperCase().trim(), status: 'active' })
+            const cleanId = identifier.trim()
+            const emp = await Employee.findOne({
+                $or: [
+                    { id: cleanId.toUpperCase() },
+                    { email: cleanId.toLowerCase() },
+                    { phone: cleanId }
+                ],
+                status: 'active'
+            })
             if (emp && bcrypt.compareSync(password, emp.password_hash)) {
                 user = emp
                 role = emp.role || 'employee'

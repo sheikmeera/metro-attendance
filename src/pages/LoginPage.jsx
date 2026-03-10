@@ -80,7 +80,7 @@ export function LoginPage() {
                                         id="empId"
                                         type="text"
                                         className="input"
-                                        placeholder="Enter Employee ID or Admin Email"
+                                        placeholder="Enter ID, Email or Phone"
                                         value={empId}
                                         onChange={e => setEmpId(e.target.value)}
                                         autoComplete="username"
