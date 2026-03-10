@@ -333,7 +333,7 @@ export function UserReport() {
                             {sites.map(site => (
                                 <button key={site.id} className="site-card" onClick={() => goToStep2(site)}>
                                     <div className="site-card-icon">
-                                        <Building2 size={18} />
+                                        <Building2 size={14} />
                                     </div>
                                     <div className="site-card-info">
                                         <div className="site-card-name">{site.site_name}</div>
