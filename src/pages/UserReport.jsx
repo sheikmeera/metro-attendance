@@ -57,19 +57,23 @@ export function UserReport() {
 
     // ── Camera Control ──────────────────────────────────────────
 
-    const startCamera = async (deviceId = null) => {
+    const startCamera = async (front = false) => {
         try {
             if (streamRef.current) stopCamera()
 
-            // Refresh device list to ensure labels are available after permission grant
+            // Refresh device list
             const items = await navigator.mediaDevices.enumerateDevices()
             const videoInputs = items.filter(i => i.kind === 'videoinput')
             setDevices(videoInputs)
 
+            // Use facingMode for reliable front/back switching on mobile
+            // Request 4:3 aspect (1280x960) so all devices output a consistent ratio
             const constraints = {
-                video: deviceId
-                    ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
-                    : { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                video: {
+                    facingMode: { ideal: front ? 'user' : 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 960 },
+                },
                 audio: false,
             }
 
@@ -78,24 +82,18 @@ export function UserReport() {
 
             if (videoRef.current) {
                 videoRef.current.srcObject = stream
-                // Ensure playsInline is set for iOS
                 videoRef.current.setAttribute('playsinline', true)
-                videoRef.current.play().catch(e => console.error("Play failed:", e))
+                videoRef.current.play().catch(e => console.error('Play failed:', e))
             }
 
-            // Update active device ID
+            // Track which camera is active
             if (stream.getVideoTracks().length > 0) {
                 const track = stream.getVideoTracks()[0]
                 const settings = track.getSettings()
-                setActiveDeviceId(settings.deviceId || deviceId)
-                // Detect front/selfie camera for mirror correction
-                const fm = settings.facingMode
-                const label = (track.label || '').toLowerCase()
-                setIsFrontCamera(
-                    fm === 'user' || (!fm && (label.includes('front') || label.includes('selfie')))
-                )
+                setActiveDeviceId(settings.deviceId)
             }
 
+            setIsFrontCamera(front)
             setCameraActive(true)
         } catch (err) {
             console.error('Camera Error:', err)
@@ -104,18 +102,8 @@ export function UserReport() {
     }
 
     const switchCamera = async () => {
-        if (devices.length < 2) {
-            // Try to refresh devices if list is small
-            const items = await navigator.mediaDevices.enumerateDevices()
-            const videoInputs = items.filter(i => i.kind === 'videoinput')
-            setDevices(videoInputs)
-            if (videoInputs.length < 2) return showToast('No other cameras found', 'info')
-        }
-
-        const currentIndex = devices.findIndex(d => d.deviceId === activeDeviceId)
-        const nextIndex = (currentIndex + 1) % devices.length
-        const nextDevice = devices[nextIndex]
-        startCamera(nextDevice.deviceId)
+        // Simply toggle between front and back
+        startCamera(!isFrontCamera)
     }
 
     const stopCamera = () => {
@@ -151,14 +139,8 @@ export function UserReport() {
         canvas.height = TARGET_H
         const ctx = canvas.getContext('2d', { alpha: false })
 
-        // Mirror capture for front camera so output matches the live preview
-        if (isFrontCamera) {
-            ctx.translate(TARGET_W, 0)
-            ctx.scale(-1, 1)
-        }
-
+        // Draw cropped 4:3 frame (no mirroring — save the natural orientation)
         ctx.drawImage(video, sx, sy, sw, sh, 0, 0, TARGET_W, TARGET_H)
-        ctx.setTransform(1, 0, 0, 1, 0, 0)
 
         const W = TARGET_W, H = TARGET_H
         const now = new Date()
@@ -234,7 +216,7 @@ export function UserReport() {
     const retakePhoto = () => {
         setCapturedImage(null)
         setCapturedBlob(null)
-        startCamera()
+        startCamera(isFrontCamera)
     }
 
     const closeCamera = () => {
@@ -263,7 +245,7 @@ export function UserReport() {
         setStep(2)
         // Kick off GPS + camera at the same time
         getGPS()
-        setTimeout(() => startCamera(), 300)
+        setTimeout(() => startCamera(false), 300)
     }
 
     // ── Submit ───────────────────────────────────────────────────
