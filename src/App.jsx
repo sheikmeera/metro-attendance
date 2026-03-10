@@ -32,33 +32,35 @@ export default function App() {
   const isEmployee = currentUser.role !== 'admin'
 
   return (
-    <div className={`layout${isEmployee ? ' employee-view' : ''}`}>
+    <div className={`layout${isEmployee ? ' employee-view' : ''} pwa-startup`}>
       <Sidebar />
       {toast && <Toast message={toast.message} type={toast.type} />}
       <main className={`main-content${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isEmployee ? ' has-bottom-nav' : ''}`}>
-        <Routes>
-          {currentUser.role === 'admin' ? (
-            <>
-              <Route path="/" element={<AdminDashboard />} />
-              <Route path="/attendance" element={<AdminLogs />} />
-              <Route path="/sites" element={<AdminSites />} />
-              <Route path="/sites/:id" element={<SiteDetail />} />
-              <Route path="/employees" element={<AdminEmployees />} />
-              <Route path="/employees/:id" element={<AdminEmployeeDetail />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </>
-          ) : (
-            <>
-              <Route path="/" element={<UserDashboard />} />
-              <Route path="/report" element={<UserReport />} />
-              <Route path="/history" element={<UserHistory />} />
-              <Route path="/sites" element={<UserSites />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" />} />
-            </>
-          )}
-        </Routes>
+        <div className="page-wrapper pwa-ready">
+          <Routes>
+            {currentUser.role === 'admin' ? (
+              <>
+                <Route path="/" element={<AdminDashboard />} />
+                <Route path="/attendance" element={<AdminLogs />} />
+                <Route path="/sites" element={<AdminSites />} />
+                <Route path="/sites/:id" element={<SiteDetail />} />
+                <Route path="/employees" element={<AdminEmployees />} />
+                <Route path="/employees/:id" element={<AdminEmployeeDetail />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </>
+            ) : (
+              <>
+                <Route path="/" element={<UserDashboard />} />
+                <Route path="/report" element={<UserReport />} />
+                <Route path="/history" element={<UserHistory />} />
+                <Route path="/sites" element={<UserSites />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </>
+            )}
+          </Routes>
+        </div>
       </main>
       {isEmployee && <BottomNav />}
     </div>

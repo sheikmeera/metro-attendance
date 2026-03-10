@@ -194,18 +194,18 @@ export function UserDashboard() {
                 </div>
 
                 {/* ── Quick Stats ── */}
-                <div className="anim-in anim-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                <div className="anim-in anim-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.6rem', marginTop: '0.5rem' }}>
                     {[
-                        { Icon: Calendar, label: t('stat.present_month') || 'Present (30d)', value: dashboard?.presentThisMonth ?? recentAtt.length, color: 'var(--success)', bg: 'rgba(34,197,94,0.12)' },
-                        { Icon: FileText, label: t('stat.reports_filed') || 'Reports Filed', value: dashboard?.reportsThisMonth ?? '—', color: 'var(--info)', bg: 'rgba(59,130,246,0.12)' },
+                        { Icon: Calendar, label: t('stat.present_month') || 'Present', value: dashboard?.presentThisMonth ?? recentAtt.length, color: 'var(--success)', bg: 'rgba(34,197,94,0.12)' },
+                        { Icon: FileText, label: t('stat.reports_filed') || 'Reports', value: dashboard?.reportsThisMonth ?? '—', color: 'var(--info)', bg: 'rgba(59,130,246,0.12)' },
                         { Icon: Building2, label: t('stat.sites_assigned') || 'Sites', value: assignedSites.length, color: 'var(--brand-primary)', bg: 'rgba(249,115,22,0.12)' },
                     ].map(({ Icon, label, value, color, bg }) => (
-                        <div key={label} className="stat-card" style={{ flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.35rem', padding: '0.875rem 0.5rem' }}>
-                            <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon size={17} color={color} />
+                        <div key={label} className="stat-card" style={{ flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '0.2rem', padding: '0.65rem 0.25rem' }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 8, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Icon size={15} color={color} />
                             </div>
-                            <div className="stat-value" style={{ fontSize: '1.35rem', color }}>{value}</div>
-                            <div className="stat-label" style={{ fontSize: '0.67rem' }}>{label}</div>
+                            <div className="stat-value" style={{ fontSize: '1.2rem', color }}>{value}</div>
+                            <div className="stat-label" style={{ fontSize: '0.6rem', opacity: 0.8 }}>{label}</div>
                         </div>
                     ))}
                 </div>

@@ -32,8 +32,8 @@ export function LoginPage() {
         <div className="login-page">
             {/* ── Desktop brand panel ── */}
             <div className="login-brand-panel">
-                <div className="lbp-logo-wrap">
-                    <img src="/logo.jpeg" alt="Metro Electricals" className="lbp-logo" />
+                <div className="lbp-logo-wrap" style={{ padding: '1rem' }}>
+                    <img src="/logo_v3_amber.png" alt="Metro Electricals" className="lbp-logo" />
                 </div>
                 <h1 className="lbp-title">{t('app.title')}</h1>
                 <p className="lbp-subtitle">{t('app.subtitle')}</p>
@@ -59,8 +59,8 @@ export function LoginPage() {
                 <div className="login-container">
                     {/* Mobile-only brand */}
                     <div className="login-brand-mobile">
-                        <div className="login-logo-wrap">
-                            <img src="/logo.jpeg" alt="Metro Electricals" className="login-logo-img" />
+                        <div className="login-logo-wrap" style={{ padding: '0.5rem' }}>
+                            <img src="/logo_v3_amber.png" alt="Metro Electricals" className="login-logo-img" />
                         </div>
                         <h1 className="login-title">{t('app.title')}</h1>
                         <p className="login-subtitle">{t('app.subtitle')}</p>

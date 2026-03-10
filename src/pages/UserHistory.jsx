@@ -38,6 +38,8 @@ export function UserHistory() {
             .finally(() => setLoading(false))
     }, [days])
 
+    const [selectedRecord, setSelectedRecord] = useState(null)
+
     return (
         <div className="page-shell page-enter">
             <div className="page-content" style={{ maxWidth: 700 }}>
@@ -56,7 +58,7 @@ export function UserHistory() {
                         <Filter size={14} color="var(--text-muted)" />
                         <select
                             className="input"
-                            style={{ width: 'auto', minWidth: 130, padding: '0.5rem 2rem 0.5rem 0.75rem' }}
+                            style={{ width: 'auto', minWidth: 100, padding: '0.4rem 1.75rem 0.4rem 0.5rem', fontSize: '0.8rem' }}
                             value={days}
                             onChange={e => setDays(Number(e.target.value))}
                         >
@@ -68,7 +70,7 @@ export function UserHistory() {
                 </div>
 
                 {/* Stats */}
-                <div className="anim-in anim-delay-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
+                <div className="anim-in anim-delay-1" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
                     <div className="stat-card">
                         <div className="stat-icon" style={{ background: 'rgba(34,197,94,0.12)' }}>
                             <Calendar size={18} color="var(--success)" />
@@ -90,9 +92,9 @@ export function UserHistory() {
                 </div>
 
                 {/* Records */}
-                <div className="section-card anim-in anim-delay-2" style={{ padding: 0 }}>
-                    <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 className="section-title" style={{ margin: 0 }}>{t('section.attendance_log')}</h3>
+                <div className="section-card anim-in anim-delay-2" style={{ padding: 0, marginTop: '1.25rem', border: 'none', background: 'transparent', boxShadow: 'none' }}>
+                    <div style={{ padding: '0.5rem 0.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <h3 className="section-title" style={{ margin: 0, fontSize: '1rem' }}>{t('section.attendance_log')}</h3>
                         <span className="badge badge-info">{loading ? '…' : records.length} {t('label.records')}</span>
                     </div>
 
@@ -105,8 +107,8 @@ export function UserHistory() {
                         </div>
                     ) : (
                         <>
-                            {/* Desktop table */}
-                            <div className="table-scroll hide-mobile">
+                            {/* Desktop table (Hidden on < 640px) */}
+                            <div className="hide-mobile" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                                 <table className="data-table">
                                     <thead>
                                         <tr>
@@ -139,52 +141,51 @@ export function UserHistory() {
                                 </table>
                             </div>
 
-                            {/* Mobile card list */}
-                            <div className="hide-desktop" style={{ display: 'flex', flexDirection: 'column' }}>
+                            {/* Mobile Card Layout (Visible on < 640px) */}
+                            <div className="hide-desktop" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.6rem' }}>
                                 {records.map((rec, i) => (
                                     <div
                                         key={rec.id}
-                                        className="anim-in"
+                                        className="mobile-slide-in"
+                                        onClick={() => setSelectedRecord(rec)}
                                         style={{
-                                            animationDelay: `${i * 0.04}s`,
+                                            animationDelay: `${i * 0.05}s`,
                                             display: 'flex',
-                                            alignItems: 'flex-start',
+                                            alignItems: 'center',
                                             gap: '0.75rem',
-                                            padding: '1rem',
-                                            borderBottom: i < records.length - 1 ? '1px solid var(--border)' : 'none',
+                                            padding: '0.875rem',
+                                            background: 'var(--bg-card)',
+                                            border: '1px solid var(--border)',
+                                            borderRadius: 'var(--radius-md)',
+                                            cursor: 'pointer'
                                         }}
                                     >
                                         <div style={{
-                                            width: 44, height: 44, borderRadius: 10,
+                                            width: 40, height: 40, borderRadius: 8,
                                             background: rec.status === 'manual' ? 'var(--warning-bg)' : 'var(--success-bg)',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                             flexShrink: 0,
-                                            border: `1px solid ${rec.status === 'manual' ? 'rgba(249,115,22,0.3)' : 'var(--success-border)'}`,
+                                            border: `1px solid ${rec.status === 'manual' ? 'var(--warning-border)' : 'var(--success-border)'}`,
                                         }}>
-                                            <span style={{ fontSize: '1rem', fontWeight: 800, color: rec.status === 'manual' ? 'var(--warning)' : 'var(--success)', lineHeight: 1 }}>
+                                            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: rec.status === 'manual' ? 'var(--warning)' : 'var(--success)', lineHeight: 1 }}>
                                                 {format(new Date(rec.date + 'T00:00:00'), 'd')}
                                             </span>
-                                            <span style={{ fontSize: '0.6rem', fontWeight: 600, color: rec.status === 'manual' ? 'var(--warning)' : 'var(--success)', textTransform: 'uppercase' }}>
+                                            <span style={{ fontSize: '0.55rem', fontWeight: 700, color: rec.status === 'manual' ? 'var(--warning)' : 'var(--success)', textTransform: 'uppercase' }}>
                                                 {format(new Date(rec.date + 'T00:00:00'), 'MMM')}
                                             </span>
                                         </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                                                {format(new Date(rec.date + 'T00:00:00'), 'EEEE, dd MMM')}
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                                                <Translate text={rec.site_name || 'General Attendance'} />
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: 3, flexWrap: 'wrap' }}>
-                                                <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                                    <Clock size={10} style={{ flexShrink: 0 }} /> <span>{rec.time}</span>
-                                                </span>
-                                                {rec.site_name && (
-                                                    <span style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.72rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>
-                                                        <MapPin size={10} style={{ flexShrink: 0 }} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><Translate text={rec.site_name} /></span>
-                                                    </span>
-                                                )}
+                                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 2 }}>
+                                                <span>{format(new Date(rec.date + 'T00:00:00'), 'EEEE')}</span>
+                                                <span>•</span>
+                                                <span>{rec.time}</span>
                                             </div>
                                         </div>
-                                        <span className={`badge ${rec.status === 'manual' ? 'badge-warning' : 'badge-success'}`} style={{ flexShrink: 0 }}>
-                                            {rec.status === 'manual' ? t('status.manual') : t('status.present')}
+                                        <span className={`badge ${rec.status === 'manual' ? 'badge-warning' : 'badge-success'}`} style={{ fontSize: '0.65rem', padding: '0.15rem 0.5rem' }}>
+                                            {rec.status === 'manual' ? t('status.manual') : 'PR'}
                                         </span>
                                     </div>
                                 ))}
@@ -192,6 +193,73 @@ export function UserHistory() {
                         </>
                     )}
                 </div>
+
+                {/* Detail Modal */}
+                {selectedRecord && (
+                    <div className="modal-overlay" onClick={() => setSelectedRecord(null)}>
+                        <div className="modal-box mobile-slide-in" onClick={e => e.stopPropagation()} style={{ overflow: 'hidden' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                                <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Attendance Detail</h2>
+                                <button onClick={() => setSelectedRecord(null)} className="btn-ghost" style={{ padding: '0.4rem', borderRadius: '50%' }}>×</button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
+                                    <div style={{
+                                        width: 50, height: 50, borderRadius: 12,
+                                        background: selectedRecord.status === 'manual' ? 'var(--warning-bg)' : 'var(--success-bg)',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                        border: `1px solid ${selectedRecord.status === 'manual' ? 'var(--warning-border)' : 'var(--success-border)'}`,
+                                    }}>
+                                        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: selectedRecord.status === 'manual' ? 'var(--warning)' : 'var(--success)', lineHeight: 1 }}>
+                                            {format(new Date(selectedRecord.date + 'T00:00:00'), 'd')}
+                                        </span>
+                                        <span style={{ fontSize: '0.65rem', fontWeight: 700, color: selectedRecord.status === 'manual' ? 'var(--warning)' : 'var(--success)', textTransform: 'uppercase' }}>
+                                            {format(new Date(selectedRecord.date + 'T00:00:00'), 'MMM')}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: 700, fontSize: '1rem' }}>{format(new Date(selectedRecord.date + 'T00:00:00'), 'EEEE, dd MMMM yyyy')}</div>
+                                        <div style={{ color: 'var(--brand-primary)', fontWeight: 600, fontSize: '0.9rem' }}>{selectedRecord.time}</div>
+                                    </div>
+                                </div>
+
+                                <div className="input-group">
+                                    <label>Site Assignment</label>
+                                    <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                                        <Translate text={selectedRecord.site_name || 'N/A'} />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div className="input-group">
+                                        <label>Report Status</label>
+                                        <div>
+                                            <span className={`badge ${selectedRecord.status === 'manual' ? 'badge-warning' : 'badge-success'}`}>
+                                                {selectedRecord.status === 'manual' ? t('status.manual') : 'Present'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Sync ID</label>
+                                        <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>#{selectedRecord.id?.slice(-8)}</div>
+                                    </div>
+                                </div>
+
+                                {selectedRecord.notes && (
+                                    <div className="input-group">
+                                        <label>Report Notes</label>
+                                        <p style={{ fontSize: '0.875rem', margin: 0 }}>{selectedRecord.notes}</p>
+                                    </div>
+                                )}
+
+                                <button onClick={() => setSelectedRecord(null)} className="btn btn-primary" style={{ marginTop: '0.5rem', width: '100%' }}>
+                                    Close Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
             </div>
         </div>

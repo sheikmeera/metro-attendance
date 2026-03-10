@@ -59,8 +59,8 @@ export function Sidebar() {
                     <button className="sb-hamburger" onClick={() => setMobileOpen(true)} aria-label="Open menu">
                         <Menu size={20} />
                     </button>
-                    <div className="mobile-brand">
-                        <img src="/logo.jpeg" alt="Metro" className="mobile-logo" />
+                    <div className="mobile-brand" style={{ gap: '0.75rem' }}>
+                        <img src="/logo_v3_amber.png" alt="Metro" className="mobile-logo" style={{ padding: '2px' }} />
                         <span className="mobile-title">Metro Electricals</span>
                     </div>
                     {/* Empty div for symmetry if needed, or user avatar */}
@@ -76,8 +76,8 @@ export function Sidebar() {
 
                 {/* Brand */}
                 <div className="sb-brand">
-                    <div className="sb-logo-wrap">
-                        <img src="/logo.jpeg" alt="Metro" className="sb-logo" />
+                    <div className="sb-logo-wrap" style={{ padding: '4px' }}>
+                        <img src="/logo_v3_amber.png" alt="Metro" className="sb-logo" />
                     </div>
                     {!sidebarCollapsed && (
                         <div className="sb-brand-text">

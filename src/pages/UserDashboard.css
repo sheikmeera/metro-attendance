@@ -8,10 +8,10 @@
 .page-content {
     max-width: 900px;
     margin: 0 auto;
-    padding: 0 1.5rem;
+    padding: 0 var(--ms-md);
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: var(--ms-lg);
 }
 
 /* Greeting */
@@ -375,7 +375,7 @@
 
 @media (max-width: 600px) {
     .page-shell {
-        padding: 1.25rem 0;
+        padding: var(--ms-lg) 0;
     }
 
     .greeting-section {

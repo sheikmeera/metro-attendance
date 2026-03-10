@@ -40,8 +40,8 @@ export function Header() {
             <div className="header-inner">
                 {/* Brand */}
                 <Link to="/" className="header-brand" onClick={() => setOpen(false)}>
-                    <div className="header-logo-wrap">
-                        <img src="/logo.jpeg" alt="Metro Electricals" className="header-logo" />
+                    <div className="header-logo-wrap" style={{ padding: '4px' }}>
+                        <img src="/logo_v3_amber.png" alt="Metro Electricals" className="header-logo" />
                     </div>
                     <div className="header-brand-text">
                         <span className="header-company">{t('app.title')}</span>
