@@ -7,6 +7,7 @@
     left: 0;
     top: 0;
     bottom: 0;
+    height: 100dvh;
     width: 240px;
     display: flex;
     flex-direction: column;
@@ -134,6 +135,8 @@
     padding: 0.625rem 0.5rem;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
 }
 
 .sb-link {

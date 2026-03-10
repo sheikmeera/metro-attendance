@@ -5,7 +5,7 @@ import client from '../api/client'
 import { format } from 'date-fns'
 import {
     ArrowLeft, MapPin, User, Briefcase, Calendar, CheckCircle,
-    XCircle, FileText, Users, ClipboardList, Lock, Download
+    XCircle, FileText, Users, ClipboardList, Lock, Download, Trash2
 } from 'lucide-react'
 import { renderAvatar } from '../utils/avatarHelper'
 import { Translate } from '../utils/translateHelper'
@@ -54,6 +54,17 @@ export function SiteDetail() {
             showToast('Site closed.', 'success')
             load()
         } catch { showToast('Failed to close site.', 'error') }
+    }
+
+    const handleDelete = async (rec) => {
+        if (!window.confirm(`Are you sure you want to reset report for ${rec.employee_name} on ${rec.date}?`)) return;
+        try {
+            await client.delete(`/admin/attendance/reset?employee_id=${rec.employee_id}&date=${rec.date}&site_id=${id}`);
+            showToast('Report reset successfully.');
+            load();
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Failed to reset report.', 'error');
+        }
     }
 
     const downloadPDF = async () => {
@@ -199,7 +210,7 @@ export function SiteDetail() {
                             ) : (
                                 <div className="table-scroll">
                                     <table className="data-table">
-                                        <thead><tr><th>Employee</th><th>Date</th><th>Time</th><th>Status</th></tr></thead>
+                                        <thead><tr><th>Employee</th><th>Date</th><th>Photo</th><th>Actions</th></tr></thead>
                                         <tbody>
                                             {attendance.slice(0, 20).map(r => (
                                                 <tr key={r.id}>
@@ -212,9 +223,25 @@ export function SiteDetail() {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td>{format(new Date(r.date), 'dd MMM yyyy')}</td>
-                                                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{r.time}</td>
-                                                    <td><span className={`badge ${r.status === 'manual' ? 'badge-warning' : 'badge-success'}`}>{r.status}</span></td>
+                                                    <td>
+                                                        <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{format(new Date(r.date), 'dd MMM yyyy')}</div>
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{r.time}</div>
+                                                    </td>
+                                                    <td>
+                                                        {r.photo_url ? (
+                                                            <img
+                                                                src={r.photo_url.startsWith('http') ? r.photo_url : `${API_BASE}${r.photo_url}`}
+                                                                style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 5, cursor: 'pointer' }}
+                                                                alt="report"
+                                                                onClick={() => window.open(r.photo_url.startsWith('http') ? r.photo_url : `${API_BASE}${r.photo_url}`, '_blank')}
+                                                            />
+                                                        ) : <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>No Photo</span>}
+                                                    </td>
+                                                    <td>
+                                                        <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(r)} title="Reset">
+                                                            <Trash2 size={14} color="var(--danger)" />
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>

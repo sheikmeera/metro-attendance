@@ -7,7 +7,7 @@ import {
     ArrowLeft, Briefcase, Phone, Mail, Calendar,
     MapPin, Edit3, X, Save, UserX, UserCheck, Clock,
     Shield, Activity, Building2, ChevronRight,
-    FileText, Camera, MessageSquare
+    FileText, Camera, MessageSquare, Trash2
 } from 'lucide-react'
 import { Translate } from '../utils/translateHelper'
 import './AdminEmployeeDetail.css'
@@ -92,6 +92,17 @@ export function AdminEmployeeDetail() {
             }
             load()
         } catch { showToast('Action failed.', 'error') }
+    }
+
+    const handleDeleteAttendance = async (rec) => {
+        if (!window.confirm(`Are you sure you want to reset report for ${rec.date}?`)) return;
+        try {
+            await client.delete(`/admin/attendance/reset?employee_id=${id}&date=${rec.date}${rec.site_id ? '&site_id=' + rec.site_id : ''}`);
+            showToast('Report reset successfully.');
+            load();
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Failed to reset report.', 'error');
+        }
     }
 
     const renderAvatar = (avatar, size) => {
@@ -269,7 +280,7 @@ export function AdminEmployeeDetail() {
                                 <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No records found.</div>
                             ) : (
                                 attendance.slice(0, 20).map((r, i) => (
-                                    <div key={i} className="ed-attendance-row">
+                                    <div key={i} className="ed-attendance-row" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <div className="ed-date-marker">
                                             <span style={{ fontSize: '1rem', fontWeight: 800 }}>{format(new Date(r.date), 'dd')}</span>
                                             <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>{format(new Date(r.date), 'MMM')}</span>
@@ -280,12 +291,22 @@ export function AdminEmployeeDetail() {
                                                 <Clock size={10} /> {r.time}
                                             </div>
                                         </div>
-                                        {r.latitude && (
-                                            <a href={`https://www.google.com/maps?q=${r.latitude},${r.longitude}`} target="_blank" rel="noreferrer"
-                                                style={{ color: 'var(--brand-primary)', opacity: 0.8 }}>
-                                                <MapPin size={16} />
-                                            </a>
+                                        {r.photo_url && (
+                                            <div className="att-photo-thumb" onClick={() => window.open(r.photo_url.startsWith('http') ? r.photo_url : `${BASE_URL}${r.photo_url}`, '_blank')}>
+                                                <img src={r.photo_url.startsWith('http') ? r.photo_url : `${BASE_URL}${r.photo_url}`} style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', cursor: 'pointer', border: '1px solid var(--border)' }} alt="Att" />
+                                            </div>
                                         )}
+                                        <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                                            {r.latitude && (
+                                                <a href={`https://www.google.com/maps?q=${r.latitude},${r.longitude}`} target="_blank" rel="noreferrer"
+                                                    style={{ color: 'var(--brand-primary)', opacity: 0.8 }}>
+                                                    <MapPin size={16} />
+                                                </a>
+                                            )}
+                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0.25rem' }} onClick={() => handleDeleteAttendance(r)}>
+                                                <Trash2 size={14} color="var(--danger)" />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))
                             )}

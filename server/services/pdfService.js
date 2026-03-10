@@ -156,96 +156,102 @@ async function v2_profileCard(doc, rows, y, assetMap) {
 }
 
 async function v2_logCard(doc, rec, y, x, width, index, assetMap) {
-    const CARD_H = 180, HEADER_H = 28, R = 6;
+    const CARD_H = 200, HEADER_H = 30, R = 8;
+    const PAD = 12;
 
     // Card Container
-    doc.save();
+    doc.save()
+        .roundedRect(x, y, width, CARD_H, R)
+        .lineWidth(0.5)
+        .strokeColor(BORDER)
+        .stroke()
+        .restore();
+
     // Header
-    doc.roundedRect(x, y, width, HEADER_H, R).clip().rect(x, y, width, HEADER_H).fill(DARK).restore();
+    doc.save()
+        .roundedRect(x, y, width, HEADER_H, R)
+        .clip()
+        .rect(x, y, width, HEADER_H)
+        .fill(DARK)
+        .restore();
 
     // Badge
-    doc.save().roundedRect(x + 8, y + 5, 24, 18, 4).fill(AMBER).restore();
-    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(8.5).text(`#${index + 1}`, x + 8, y + 10, { width: 24, align: 'center' });
+    doc.save().roundedRect(x + 10, y + 6, 26, 18, 4).fill(AMBER).restore();
+    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(9).text(`#${index + 1}`, x + 10, y + 11, { width: 26, align: 'center' });
 
     // Employee Name & ID
-    const nameText = `${rec.employee_name || '—'}  ·  ${rec.employee_id || '—'}`;
-    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(9).text(nameText, x + 40, y + 9, { width: width - 110 });
+    const nameText = `${rec.employee_name || '—'}  (${rec.employee_id || '—'})`;
+    doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(10).text(nameText, x + 45, y + 10, { width: width - 180 });
 
     // Date & Time (Top Right)
     const dateTime = `${rec.date || ''}  ${rec.time || ''}`;
-    doc.fillColor('#94a3b8').font('Helvetica').fontSize(7.5).text(dateTime, x + width - 105, y + 10, { width: 100, align: 'right' });
+    doc.fillColor('#94a3b8').font('Helvetica').fontSize(8.5).text(dateTime, x + width - 130, y + 11, { width: 120, align: 'right' });
 
-    // Body
-    const bodyY = y + HEADER_H, bodyH = CARD_H - HEADER_H;
-    doc.save().fillColor(WHITE).strokeColor(BORDER).roundedRect(x, bodyY, width, bodyH, R).fillAndStroke().restore();
+    // Body Area
+    const bodyY = y + HEADER_H + PAD;
+    const photoW = (width * 0.35), photoH = CARD_H - HEADER_H - (PAD * 2);
+    const photoX = x + PAD;
 
-    // Photo (Left side of Body)
-    const photoW = (width * 0.45), photoH = bodyH - 20;
-    const photoX = x + 10, photoY = bodyY + 10;
-    doc.save().roundedRect(photoX, photoY, photoW, photoH, 8).clip();
+    // Photo
+    doc.save().roundedRect(photoX, bodyY, photoW, photoH, 8).clip();
     const photoPath = assetMap[rec.photo_url];
     if (photoPath) {
-        try { doc.image(photoPath, photoX, photoY, { fit: [photoW, photoH], align: 'center', valign: 'center' }); }
-        catch { doc.rect(photoX, photoY, photoW, photoH).fill('#f1f5f9'); }
+        try { doc.image(photoPath, photoX, bodyY, { fit: [photoW, photoH], align: 'center', valign: 'center' }); }
+        catch { doc.rect(photoX, bodyY, photoW, photoH).fill('#f1f5f9'); }
     } else {
-        doc.rect(photoX, photoY, photoW, photoH).fill('#f1f5f9');
+        doc.rect(photoX, bodyY, photoW, photoH).fill('#f1f5f9');
     }
     doc.restore();
 
-    // Vertical Divider (Dotted line effect)
-    const dividerX = photoX + photoW + 10;
-    doc.save();
-    doc.dash(1, { space: 2 }).strokeColor(BORDER).moveTo(dividerX, bodyY + 10).lineTo(dividerX, bodyY + bodyH - 10).stroke();
-    doc.restore();
-
-    // Details (Right side of Body)
-    const detailsX = dividerX + 10, detailsW = width - (detailsX - x) - 10;
-    let dy = bodyY + 10;
+    // Content area (Middle)
+    const contentX = photoX + photoW + PAD;
+    const contentW = (width * 0.3);
+    let dy = bodyY;
 
     const drawDetail = (label, value, isStatus = false) => {
         if (!value || value === '—') return;
-
-        // Bullet
-        doc.circle(detailsX - 5, dy + 4, 1.5).fill(AMBER);
-
-        // Label
-        doc.fillColor(MUTED).font('Helvetica-Bold').fontSize(6).text(label.toUpperCase(), detailsX, dy);
-        dy += 8;
-
-        // Value
+        doc.fillColor(MUTED).font('Helvetica-Bold').fontSize(6.5).text(label.toUpperCase(), contentX, dy);
+        dy += 9;
         if (isStatus && value.toUpperCase() === 'PRESENT') {
-            doc.save().roundedRect(detailsX, dy - 2, 50, 12, 3).fill(GREEN).restore();
-            doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(7).text(value.toUpperCase(), detailsX, dy + 0.5, { width: 50, align: 'center' });
-            dy += 16;
+            doc.save().roundedRect(contentX, dy - 1, 44, 11, 3).fill(GREEN).restore();
+            doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(7.5).text(value.toUpperCase(), contentX, dy + 0.5, { width: 44, align: 'center' });
+            dy += 15;
         } else {
-            doc.fillColor(TEXT).font('Helvetica-Bold').fontSize(8).text(String(value), detailsX, dy, { width: detailsW });
-            dy += doc.heightOfString(String(value), { width: detailsW, fontSize: 8 }) + 6;
+            doc.fillColor(TEXT).font('Helvetica-Bold').fontSize(8.5).text(String(value), contentX, dy, { width: contentW });
+            dy += doc.heightOfString(String(value), { width: contentW, fontSize: 8.5 }) + 7;
         }
     };
 
     drawDetail('Site', rec.site_name);
-    drawDetail('Date & Time', `${rec.date} · ${rec.time}`);
     drawDetail('Status', rec.status || 'PRESENT', true);
     drawDetail('Notes', rec.notes);
 
-    // Map Snapshot (Bottom Right)
-    const mapW = detailsW, mapH = 35;
-    const mapX = detailsX, mapY = bodyY + bodyH - 55;
-    doc.save().roundedRect(mapX, mapY, mapW, mapH, 4).clip();
+    // Map & GPS (Right)
+    const mapX = contentX + contentW + PAD;
+    const mapW = width - (mapX - x) - PAD;
+    const mapH = 90;
+
+    // Map Snapshot
+    doc.save().roundedRect(mapX, bodyY, mapW, mapH, 6).clip();
     const tileUrl = getTileUrl(rec.report_lat, rec.report_lng);
     const tilePath = assetMap[tileUrl];
     if (tilePath) {
-        try { doc.image(tilePath, mapX, mapY, { width: mapW, height: mapH, fit: [mapW, mapH] }); }
-        catch { doc.rect(mapX, mapY, mapW, mapH).fill('#f1f5f9'); }
+        try { doc.image(tilePath, mapX, bodyY, { width: mapW, height: mapH, fit: [mapW, mapH] }); }
+        catch { doc.rect(mapX, bodyY, mapW, mapH).fill('#f1f5f9'); }
     } else {
-        doc.rect(mapX, mapY, mapW, mapH).fill('#f1f5f9');
+        doc.rect(mapX, bodyY, mapW, mapH).fill('#f1f5f9');
     }
     doc.restore();
 
-    // GPS Text
+    // GPS Details
     if (rec.report_lat) {
-        const gpsText = `Ø-ÚÍ ${parseFloat(rec.report_lat).toFixed(5)}, ${parseFloat(rec.report_lng).toFixed(5)} · OpenStreetMap`;
-        doc.fillColor(MUTED).font('Helvetica').fontSize(5.5).text(gpsText, mapX, mapY + mapH + 3, { width: mapW, align: 'left' });
+        let gy = bodyY + mapH + 8;
+        doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(6.5).text('GPS LOCATION', mapX, gy);
+        gy += 9;
+        const latLong = `${parseFloat(rec.report_lat).toFixed(6)}, ${parseFloat(rec.report_lng).toFixed(6)}`;
+        doc.fillColor(TEXT).font('Helvetica').fontSize(8).text(latLong, mapX, gy);
+        gy += 12;
+        doc.fillColor(MUTED).font('Helvetica').fontSize(6).text('Captured via Metro Attendance Mobile Geotag System', mapX, gy, { width: mapW });
     }
 
     return CARD_H;
@@ -281,27 +287,20 @@ function formatGB(date) {
 }
 
 async function renderGridLogs(doc, records, assetMap, startY, headerFn) {
-    const CARD_W = (CW - 15) / 2;
-    const CARD_H = 180;
-    const GAP = 15;
+    const CARD_W = CW;
+    const CARD_H = 200;
+    const GAP = 20;
     let y = startY;
 
     for (let i = 0; i < records.length; i++) {
-        const col = i % 2;
-        const x = ML + col * (CARD_W + GAP);
-
-        // Check for page break (on new row start or if both columns overflow)
-        if (col === 0 && (y + CARD_H + 20 > PH - BOT)) {
+        // Check for page break
+        if (y + CARD_H + 30 > PH - BOT) {
             doc.addPage();
             y = headerFn(doc);
         }
 
-        await v2_logCard(doc, records[i], y, x, CARD_W, i, assetMap);
-
-        // Move Y only after second column
-        if (col === 1 || i === records.length - 1) {
-            y += CARD_H + GAP;
-        }
+        await v2_logCard(doc, records[i], y, ML, CARD_W, i, assetMap);
+        y += CARD_H + GAP;
     }
     return y;
 }

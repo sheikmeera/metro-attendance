@@ -2,9 +2,10 @@ import { useState, useMemo, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import client from '../api/client'
 import { format } from 'date-fns'
-import { FileText, Download, X } from 'lucide-react'
+import { FileText, Download, X, Trash2, Edit3, Image as ImageIcon, MapPin } from 'lucide-react'
 import { renderAvatar } from '../utils/avatarHelper'
 import { Translate } from '../utils/translateHelper'
+import { Modal } from '../components/Modal' // Assuming a Modal component exists or I'll use window.confirm for simplicity first
 
 const getApiBase = () => {
     if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL
@@ -33,6 +34,17 @@ export function AdminLogs() {
             setEmployees(e.data)
             setSites(s.data)
         }).catch(() => showToast('Failed to load records.', 'error'))
+    }
+
+    const handleDelete = async (rec) => {
+        if (!window.confirm(`Are you sure you want to reset report for ${rec.employee_name} on ${rec.date}? This will delete the attendance and any associated site reports for this day.`)) return;
+        try {
+            await client.delete(`/admin/attendance/reset?employee_id=${rec.employee_id}&date=${rec.date}${rec.site_id ? '&site_id=' + rec.site_id : ''}`);
+            showToast('Report reset successfully.');
+            load();
+        } catch (err) {
+            showToast(err.response?.data?.error || 'Failed to reset report.', 'error');
+        }
     }
 
     useEffect(() => { load() }, [])
@@ -177,9 +189,10 @@ export function AdminLogs() {
                                             <th>{t('col.employee')}</th>
                                             <th>{t('col.department')}</th>
                                             <th>{t('col.date')}</th>
-                                            <th>{t('col.time')}</th>
                                             <th>{t('col.site')}</th>
+                                            <th>Photo</th>
                                             <th>{t('col.notes')}</th>
+                                            <th style={{ textAlign: 'right' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -197,15 +210,35 @@ export function AdminLogs() {
                                                         </div>
                                                     </td>
                                                     <td style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}><Translate text={rec.department || '—'} /></td>
-                                                    <td style={{ fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                                                        {dt ? format(dt, 'dd MMM yyyy') : '—'}
-                                                    </td>
-                                                    <td style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                                                        {dt ? format(dt, 'HH:mm') : '—'}
+                                                    <td style={{ whiteSpace: 'nowrap' }}>
+                                                        <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                                                            {dt ? format(dt, 'dd MMM yyyy') : '—'}
+                                                        </div>
+                                                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                                            {dt ? format(dt, 'HH:mm') : '—'}
+                                                        </div>
                                                     </td>
                                                     <td style={{ fontSize: '0.85rem' }}><Translate text={rec.site_name || '—'} /></td>
-                                                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rec.notes}>
+                                                    <td>
+                                                        {rec.photo_url ? (
+                                                            <div className="img-preview-thumb" onClick={() => window.open(rec.photo_url.startsWith('http') ? rec.photo_url : `${API_BASE}${rec.photo_url}`, '_blank')}>
+                                                                <img
+                                                                    src={rec.photo_url.startsWith('http') ? rec.photo_url : `${API_BASE}${rec.photo_url}`}
+                                                                    alt="Capture"
+                                                                    style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover', cursor: 'pointer', border: '1px solid var(--border)' }}
+                                                                />
+                                                            </div>
+                                                        ) : <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>No Photo</span>}
+                                                    </td>
+                                                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={rec.notes}>
                                                         {rec.notes || '—'}
+                                                    </td>
+                                                    <td style={{ textAlign: 'right' }}>
+                                                        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                                                            <button className="btn btn-ghost btn-sm" style={{ padding: '0.3rem' }} title="Delete/Reset" onClick={() => handleDelete(rec)}>
+                                                                <Trash2 size={14} color="var(--danger)" />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             )
@@ -218,33 +251,61 @@ export function AdminLogs() {
                             <div className="hide-desktop" style={{ display: 'flex', flexDirection: 'column' }}>
                                 {filtered.map(rec => {
                                     const dt = parseReportTime(rec.report_time)
+                                    const photo = rec.photo_url ? (rec.photo_url.startsWith('http') ? rec.photo_url : `${API_BASE}${rec.photo_url}`) : null
+
                                     return (
                                         <div key={rec.id} style={{
-                                            display: 'flex', alignItems: 'center', gap: '0.75rem',
-                                            padding: '0.875rem 1rem',
+                                            padding: '1rem',
                                             borderBottom: '1px solid var(--border)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.75rem'
                                         }}>
-                                            {renderAvatar(rec.avatar, '2.2rem')}
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                                                    <Translate text={rec.employee_name} />
-                                                </div>
-                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                                                    {rec.employee_id} · <Translate text={rec.department || ''} />
-                                                </div>
-                                                {rec.site_name && (
-                                                    <div style={{ fontSize: '0.72rem', color: 'var(--brand-primary)', marginTop: 2, fontWeight: 500 }}>
-                                                        <Translate text={rec.site_name} />
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                {renderAvatar(rec.avatar, '2.5rem')}
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                                                        <Translate text={rec.employee_name} />
                                                     </div>
-                                                )}
+                                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                                                        {rec.employee_id} · <Translate text={rec.department || ''} />
+                                                    </div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
+                                                        {dt ? format(dt, 'dd MMM') : '—'}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                                        {dt ? format(dt, 'HH:mm') : ''}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                                <div style={{ fontWeight: 600, fontSize: '0.8rem', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                                                    {dt ? format(dt, 'dd MMM') : '—'}
+
+                                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                                                {photo && (
+                                                    <img
+                                                        src={photo}
+                                                        alt="Capture"
+                                                        onClick={() => window.open(photo, '_blank')}
+                                                        style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)' }}
+                                                    />
+                                                )}
+                                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                                    {rec.site_name && (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 600 }}>
+                                                            <MapPin size={12} /> <Translate text={rec.site_name} />
+                                                        </div>
+                                                    )}
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                                        {rec.notes || <span style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>No notes</span>}
+                                                    </div>
                                                 </div>
-                                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                                                    {dt ? format(dt, 'HH:mm') : ''}
-                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                                <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)', fontSize: '0.7rem', fontWeight: 600 }} onClick={() => handleDelete(rec)}>
+                                                    <Trash2 size={13} style={{ marginRight: 4 }} /> {t('action.delete') || 'Reset'}
+                                                </button>
                                             </div>
                                         </div>
                                     )
