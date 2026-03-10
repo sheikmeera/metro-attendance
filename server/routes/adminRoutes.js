@@ -50,7 +50,9 @@ router.delete('/attendance/reset', attCtrl.resetAttendance)
 
 // ── Report Routes ─────────────────────────────────────────
 router.get('/reports', repCtrl.getAllReports)
-router.put('/report/:id/verify', repCtrl.verifyReport)router.delete('/report/:id', repCtrl.deleteReport)
+router.put('/report/:id/verify', repCtrl.verifyReport)
+router.delete('/report/:id', repCtrl.deleteReport)
+
 // ── PDF Log Routes ────────────────────────────────────────
 router.get('/logs/daily', pdfCtrl.dailyLog)
 router.get('/logs/site', pdfCtrl.siteLog)
