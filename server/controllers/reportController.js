@@ -177,9 +177,11 @@ exports.getAllReports = async (req, res) => {
         // Populate employee data seamlessly
         const populated = reports.map((r) => {
             const emp = empMap[r.employee_id]
+            const rDate = new Date(r.report_time.getTime() + (5.5 * 60 * 60 * 1000)).toISOString().split('T')[0]
             return {
                 ...r,
                 id: r._id,
+                date: rDate, // Fixes deletion logic
                 site_name: r.site_id ? r.site_id.site_name : null,
                 site_id: r.site_id ? r.site_id._id : null,
                 employee_name: emp ? emp.name : null,

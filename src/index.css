@@ -140,17 +140,21 @@ body {
   width: 100%;
 }
 
-.layout {
-  display: flex;
-  flex: 1;
-  width: 100%;
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.layout-auth {
-  min-height: 100vh;
-  min-height: 100dvh;
+.layout {
   display: flex;
-  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
 }
 
 .main-content {
@@ -161,8 +165,10 @@ body {
   flex-direction: column;
   transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .main-content.sidebar-collapsed {

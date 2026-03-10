@@ -72,8 +72,8 @@ exports.getStats = async (req, res) => {
         const date = req.query.date || new Date().toISOString().split('T')[0]
 
         const totalEmps = await Employee.countDocuments({ status: 'active', role: 'employee' })
-        const present = await Attendance.countDocuments({ date })
-        const manual = await Attendance.countDocuments({ date, status: 'manual' })
+        const present = (await Attendance.distinct('employee_id', { date })).length
+        const manual = (await Attendance.distinct('employee_id', { date, status: 'manual' })).length
         const activeSites = await Site.countDocuments({ status: 'active' })
 
         // Report logic

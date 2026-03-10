@@ -156,7 +156,7 @@ async function v2_profileCard(doc, rows, y, assetMap) {
 }
 
 async function v2_logCard(doc, rec, y, x, width, index, assetMap) {
-    const CARD_H = 200, HEADER_H = 30, R = 8;
+    const CARD_H = 220, HEADER_H = 30, R = 8;
     const PAD = 12;
 
     // Card Container
@@ -179,7 +179,7 @@ async function v2_logCard(doc, rec, y, x, width, index, assetMap) {
     doc.save().roundedRect(x + 10, y + 6, 26, 18, 4).fill(AMBER).restore();
     doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(9).text(`#${index + 1}`, x + 10, y + 11, { width: 26, align: 'center' });
 
-    // Employee Name & ID
+    // ID & Name
     const nameText = `${rec.employee_name || '—'}  (${rec.employee_id || '—'})`;
     doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(10).text(nameText, x + 45, y + 10, { width: width - 180 });
 
@@ -189,7 +189,7 @@ async function v2_logCard(doc, rec, y, x, width, index, assetMap) {
 
     // Body Area
     const bodyY = y + HEADER_H + PAD;
-    const photoW = (width * 0.35), photoH = CARD_H - HEADER_H - (PAD * 2);
+    const photoW = (width * 0.32), photoH = CARD_H - HEADER_H - (PAD * 2);
     const photoX = x + PAD;
 
     // Photo
@@ -209,34 +209,42 @@ async function v2_logCard(doc, rec, y, x, width, index, assetMap) {
     let dy = bodyY;
 
     const drawDetail = (label, value, isStatus = false) => {
-        if (!value || value === '—') return;
         doc.fillColor(MUTED).font('Helvetica-Bold').fontSize(6.5).text(label.toUpperCase(), contentX, dy);
         dy += 9;
-        if (isStatus && value.toUpperCase() === 'PRESENT') {
+        if (isStatus && value?.toUpperCase() === 'PRESENT') {
             doc.save().roundedRect(contentX, dy - 1, 44, 11, 3).fill(GREEN).restore();
             doc.fillColor(WHITE).font('Helvetica-Bold').fontSize(7.5).text(value.toUpperCase(), contentX, dy + 0.5, { width: 44, align: 'center' });
             dy += 15;
         } else {
-            doc.fillColor(TEXT).font('Helvetica-Bold').fontSize(8.5).text(String(value), contentX, dy, { width: contentW });
-            dy += doc.heightOfString(String(value), { width: contentW, fontSize: 8.5 }) + 7;
+            doc.fillColor(TEXT).font('Helvetica-Bold').fontSize(8.5).text(String(value || '—'), contentX, dy, { width: contentW });
+            dy += doc.heightOfString(String(value || '—'), { width: contentW, fontSize: 8.5 }) + 7;
         }
     };
 
-    drawDetail('Site', rec.site_name);
-    drawDetail('Status', rec.status || 'PRESENT', true);
-    drawDetail('Notes', rec.notes);
+    drawDetail('Employee Dept', rec.department);
+    drawDetail('Site / Project', rec.site_name);
+    drawDetail('Status Key', rec.status || 'PRESENT', true);
+    if (rec.notes) drawDetail('Supervisor Notes', rec.notes);
 
     // Map & GPS (Right)
     const mapX = contentX + contentW + PAD;
     const mapW = width - (mapX - x) - PAD;
-    const mapH = 90;
+    const mapH = CARD_H - HEADER_H - (PAD * 2) - 30;
 
     // Map Snapshot
     doc.save().roundedRect(mapX, bodyY, mapW, mapH, 6).clip();
     const tileUrl = getTileUrl(rec.report_lat, rec.report_lng);
     const tilePath = assetMap[tileUrl];
     if (tilePath) {
-        try { doc.image(tilePath, mapX, bodyY, { width: mapW, height: mapH, fit: [mapW, mapH] }); }
+        try {
+            doc.image(tilePath, mapX, bodyY, { width: mapW, height: mapH });
+            // Draw marker in center (tiles are 256x256, we fit them)
+            // Since we use getTileUrl zoom 15, we assume the point is inside the tile.
+            const markerX = mapX + (mapW / 2);
+            const markerY = bodyY + (mapH / 2);
+            doc.circle(markerX, markerY, 5).fill(RED);
+            doc.circle(markerX, markerY, 6).lineWidth(1.5).strokeColor(WHITE).stroke();
+        }
         catch { doc.rect(mapX, bodyY, mapW, mapH).fill('#f1f5f9'); }
     } else {
         doc.rect(mapX, bodyY, mapW, mapH).fill('#f1f5f9');
@@ -245,13 +253,13 @@ async function v2_logCard(doc, rec, y, x, width, index, assetMap) {
 
     // GPS Details
     if (rec.report_lat) {
-        let gy = bodyY + mapH + 8;
-        doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(6.5).text('GPS LOCATION', mapX, gy);
+        let gy = bodyY + mapH + 6;
+        doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(6.5).text('GPS GEOTAG', mapX, gy);
         gy += 9;
         const latLong = `${parseFloat(rec.report_lat).toFixed(6)}, ${parseFloat(rec.report_lng).toFixed(6)}`;
         doc.fillColor(TEXT).font('Helvetica').fontSize(8).text(latLong, mapX, gy);
-        gy += 12;
-        doc.fillColor(MUTED).font('Helvetica').fontSize(6).text('Captured via Metro Attendance Mobile Geotag System', mapX, gy, { width: mapW });
+        gy += 11;
+        doc.fillColor(MUTED).font('Helvetica').fontSize(5.5).text('METRO GEOTAG VERIFIED', mapX, gy, { width: mapW });
     }
 
     return CARD_H;
