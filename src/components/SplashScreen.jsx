@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useApp } from '../context/AppContext'
 import './SplashScreen.css'
 
 export function SplashScreen() {
