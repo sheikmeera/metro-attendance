@@ -279,102 +279,198 @@ export function UserReport() {
 
     return (
         <div className="page-shell page-enter">
-            <div className="page-content" style={{ maxWidth: 560, paddingBottom: '2rem' }}>
+            <div className="report-page">
 
                 {/* Step indicator */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                    <div className={`step-pill ${step >= 1 ? 'active' : ''}`}>{t('step.select_site')}</div>
-                    <div style={{ flex: 1, height: 2, background: step >= 2 ? 'var(--brand-primary)' : 'var(--border)', transition: 'background 0.3s', borderRadius: 2 }} />
-                    <div className={`step-pill ${step >= 2 ? 'active' : ''}`}>{t('step.capture')}</div>
+                <div className="report-stepper">
+                    <div className={`report-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'done' : ''}`}>
+                        <span className="report-step-num">1</span>
+                        <span className="report-step-label">{t('step.select_site')?.replace(/^1\s*/, '')}</span>
+                    </div>
+                    <div className={`report-step-line ${step >= 2 ? 'active' : ''}`} />
+                    <div className={`report-step ${step >= 2 ? 'active' : ''}`}>
+                        <span className="report-step-num">2</span>
+                        <span className="report-step-label">{t('step.capture')?.replace(/^2\s*/, '')}</span>
+                    </div>
                 </div>
 
-                <h1 style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '0.25rem' }}>
-                    {step === 1 ? t('page.select_site') : t('page.capture_photo')}
-                </h1>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginBottom: '1.5rem' }}>
-                    {step === 1 ? t('label.choose_site') : `${t('label.reporting_from')} ${selectedSite?.site_name}`}
-                </p>
-
                 {step === 1 ? (
-                    <>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    /* ── STEP 1: Site Selection ── */
+                    <div className="report-step1 anim-in">
+                        <div className="report-header">
+                            <div className="report-header-icon">
+                                <Building2 size={22} />
+                            </div>
+                            <div>
+                                <h1 className="report-title">{t('page.select_site')}</h1>
+                                <p className="report-subtitle">{t('label.choose_site')}</p>
+                            </div>
+                        </div>
+
+                        <div className="site-list">
                             {sites.length === 0 && (
                                 <div className="empty-state"><p>{t('empty.no_sites_active')}</p></div>
                             )}
                             {sites.map(site => (
-                                <button key={site.id} className="site-option" onClick={() => goToStep2(site)}>
-                                    <Building2 size={20} color="var(--brand-primary)" />
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{site.site_name}</div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{site.location_name}</div>
+                                <button key={site.id} className="site-card" onClick={() => goToStep2(site)}>
+                                    <div className="site-card-icon">
+                                        <Building2 size={18} />
                                     </div>
-                                    <span style={{ color: 'var(--text-muted)' }}>›</span>
+                                    <div className="site-card-info">
+                                        <div className="site-card-name">{site.site_name}</div>
+                                        {site.location_name && (
+                                            <div className="site-card-location">
+                                                <MapPin size={11} /> {site.location_name}
+                                            </div>
+                                        )}
+                                        {site.client_name && (
+                                            <div className="site-card-client">{site.client_name}</div>
+                                        )}
+                                    </div>
+                                    <div className="site-card-arrow">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                    </div>
                                 </button>
                             ))}
                         </div>
-                    </>
+                    </div>
                 ) : (
-                    <div className="pwa-ready">
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-                            <button className="btn-ghost" style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }} onClick={closeCamera}>Change Site</button>
+                    /* ── STEP 2: Camera & Submit ── */
+                    <div className="report-step2 anim-in">
+                        {/* Site info bar */}
+                        <div className="report-site-bar">
+                            <div className="report-site-bar-info">
+                                <MapPin size={14} color="var(--brand-primary)" />
+                                <div>
+                                    <span className="report-site-bar-name">{selectedSite?.site_name}</span>
+                                    {selectedSite?.location_name && (
+                                        <span className="report-site-bar-loc">{selectedSite.location_name}</span>
+                                    )}
+                                </div>
+                            </div>
+                            <button className="report-change-btn" onClick={closeCamera}>
+                                Change
+                            </button>
                         </div>
 
-                        {!capturedImage ? (
-                            <div className="inline-camera-container anim-in">
-                                <div className="inline-camera-preview-wrap" style={{ aspectRatio: aspectRatio }}>
-                                    <video
-                                        ref={videoRef}
-                                        autoPlay
-                                        playsInline
-                                        muted
-                                        onLoadedMetadata={handleLoadedMetadata}
-                                        className="inline-video"
-                                        style={{ objectFit: 'contain' }}
-                                    />
+                        {/* Desktop: side-by-side, Mobile: stacked */}
+                        <div className="report-capture-layout">
+                            {/* Camera / Preview panel */}
+                            <div className="report-camera-panel">
+                                {!capturedImage ? (
+                                    <div className="report-camera-box">
+                                        <div className="report-camera-viewport" style={{ aspectRatio }}>
+                                            <video
+                                                ref={videoRef}
+                                                autoPlay
+                                                playsInline
+                                                muted
+                                                onLoadedMetadata={handleLoadedMetadata}
+                                                className="report-video"
+                                            />
 
-                                    {gpsCoords && (
-                                        <div className="gps-badge-overlay-inline">
-                                            <MapPin size={10} color="#f97316" />
-                                            <span>{gpsCoords.lat.toFixed(5)}, {gpsCoords.lng.toFixed(5)}</span>
+                                            {/* GPS badge */}
+                                            {gpsCoords && (
+                                                <div className="report-gps-badge">
+                                                    <MapPin size={10} />
+                                                    <span>{gpsCoords.lat.toFixed(5)}, {gpsCoords.lng.toFixed(5)}</span>
+                                                </div>
+                                            )}
+
+                                            {/* GPS loading */}
+                                            {gpsStatus === 'getting' && (
+                                                <div className="report-gps-badge loading">
+                                                    <span className="spinner-tiny" />
+                                                    <span>Getting GPS...</span>
+                                                </div>
+                                            )}
+
+                                            {/* Camera switch */}
+                                            {devices.length > 1 && (
+                                                <button className="report-flip-btn" onClick={switchCamera} title="Switch Camera">
+                                                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2.5" fill="none"><path d="M23 4v6h-6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1.5 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                                                </button>
+                                            )}
                                         </div>
-                                    )}
 
-                                    <div className="camera-actions-inline">
-                                        <button className="btn-camera-flip" onClick={switchCamera} title="Switch Camera">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none"><path d="M23 4v6h-6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1.5 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                                        {/* Capture button */}
+                                        <div className="report-capture-footer">
+                                            <button className="report-capture-btn" onClick={capturePhoto}>
+                                                <div className="capture-btn-ring">
+                                                    <Camera size={22} />
+                                                </div>
+                                                <span>Capture Site Photo</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="report-preview-box">
+                                        <div className="report-preview-img-wrap">
+                                            <img src={capturedImage} alt="Captured" className="report-preview-img" />
+                                            <div className="report-preview-badge">
+                                                <Camera size={11} /> Photo Captured
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Details panel — shown after capture */}
+                            {capturedImage && (
+                                <div className="report-details-panel">
+                                    {/* Status cards */}
+                                    <div className="report-status-grid">
+                                        <div className={`report-status-card ${gpsCoords ? 'success' : gpsStatus === 'error' ? 'error' : ''}`}>
+                                            <MapPin size={14} />
+                                            <div>
+                                                <span className="report-status-label">GPS Location</span>
+                                                <span className="report-status-value">
+                                                    {gpsCoords ? `${gpsCoords.lat.toFixed(4)}, ${gpsCoords.lng.toFixed(4)}` :
+                                                        gpsStatus === 'error' ? 'Unavailable' : 'Detecting...'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="report-status-card success">
+                                            <Camera size={14} />
+                                            <div>
+                                                <span className="report-status-label">Photo</span>
+                                                <span className="report-status-value">Ready to submit</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Notes */}
+                                    <div className="report-notes-group">
+                                        <label className="report-notes-label">📝 Additional Notes</label>
+                                        <textarea
+                                            className="report-notes-input"
+                                            placeholder="Any work updates, issues, or observations..."
+                                            value={notes}
+                                            onChange={e => setNotes(e.target.value)}
+                                            rows={3}
+                                        />
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="report-actions">
+                                        <button className="report-retake-btn" onClick={retakePhoto}>
+                                            <Camera size={15} />
+                                            Retake
+                                        </button>
+                                        <button className="report-submit-btn" onClick={handleSubmit} disabled={submitting}>
+                                            {submitting ? (
+                                                <span className="spinner" />
+                                            ) : (
+                                                <>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+                                                    Submit Report
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
-
-                                <div className="camera-footer-inline">
-                                    <button className="btn-capture-inline" onClick={capturePhoto}>
-                                        <Camera size={24} />
-                                        <span>Capture Site Photo</span>
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="anim-in">
-                                <div style={{ position: 'relative', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '16/9' }}>
-                                    <img src={capturedImage} alt="Captured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                </div>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
-                                    <div className="input-group">
-                                        <label>Additional Notes</label>
-                                        <textarea className="input" placeholder="Any work updates or issues..." value={notes}
-                                            onChange={e => setNotes(e.target.value)} rows={3} />
-                                    </div>
-
-                                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                        <button className="btn btn-ghost" style={{ flex: 1 }} onClick={retakePhoto}>Retake</button>
-                                        <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleSubmit} disabled={submitting}>
-                                            {submitting ? <span className="spinner" /> : 'Submit Report'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
