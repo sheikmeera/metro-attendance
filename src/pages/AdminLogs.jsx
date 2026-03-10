@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import { FileText, Download, X, Trash2, Edit3, Image as ImageIcon, MapPin } from 'lucide-react'
 import { renderAvatar } from '../utils/avatarHelper'
 import { Translate } from '../utils/translateHelper'
-import { Modal } from '../components/Modal' // Assuming a Modal component exists or I'll use window.confirm for simplicity first
 
 const getApiBase = () => {
     if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL

@@ -8,7 +8,8 @@
   z-index: 500;
   display: flex;
   align-items: stretch;
-  background: rgba(var(--bg-card), 0.85);
+  background: rgba(26, 26, 26, 0.85);
+  /* Solid fallback or hardcoded color */
   border-top: 1px solid var(--border);
   padding-bottom: env(safe-area-inset-bottom, 12px);
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
@@ -92,6 +93,11 @@
   cursor: pointer;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+.bn-center-btn img {
+  object-fit: contain;
+  padding: 2px;
 }
 
 .bn-fab {
