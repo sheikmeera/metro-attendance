@@ -32,7 +32,7 @@ export function UserReport() {
     const [notes, setNotes] = useState('')
     const [cameraActive, setCameraActive] = useState(false)
     const [submitting, setSubmitting] = useState(false)
-    const [aspectRatio, setAspectRatio] = useState(16 / 9)
+    const [isFrontCamera, setIsFrontCamera] = useState(false)
 
     const videoRef = useRef(null)
     const canvasRef = useRef(null)
@@ -85,8 +85,15 @@ export function UserReport() {
 
             // Update active device ID
             if (stream.getVideoTracks().length > 0) {
-                const settings = stream.getVideoTracks()[0].getSettings()
+                const track = stream.getVideoTracks()[0]
+                const settings = track.getSettings()
                 setActiveDeviceId(settings.deviceId || deviceId)
+                // Detect front/selfie camera for mirror correction
+                const fm = settings.facingMode
+                const label = (track.label || '').toLowerCase()
+                setIsFrontCamera(
+                    fm === 'user' || (!fm && (label.includes('front') || label.includes('selfie')))
+                )
             }
 
             setCameraActive(true)
@@ -119,29 +126,41 @@ export function UserReport() {
         setCameraActive(false)
     }
 
-    const handleLoadedMetadata = () => {
-        if (videoRef.current) {
-            const { videoWidth, videoHeight } = videoRef.current
-            if (videoWidth && videoHeight) {
-                setAspectRatio(videoWidth / videoHeight)
-            }
-        }
-    }
-
     const capturePhoto = async () => {
         const video = videoRef.current
         const canvas = canvasRef.current
         if (!video || !canvas) return
 
-        // Use video dimensions or defaults
-        canvas.width = video.videoWidth || 1280
-        canvas.height = video.videoHeight || 960
+        const vw = video.videoWidth || 1280
+        const vh = video.videoHeight || 960
+
+        // Force 4:3 output — crop video feed to fit
+        const TARGET_W = 1280, TARGET_H = 960
+        const targetRatio = TARGET_W / TARGET_H
+        let sx = 0, sy = 0, sw = vw, sh = vh
+        const videoRatio = vw / vh
+        if (videoRatio > targetRatio) {
+            sw = Math.round(vh * targetRatio)
+            sx = Math.round((vw - sw) / 2)
+        } else {
+            sh = Math.round(vw / targetRatio)
+            sy = Math.round((vh - sh) / 2)
+        }
+
+        canvas.width = TARGET_W
+        canvas.height = TARGET_H
         const ctx = canvas.getContext('2d', { alpha: false })
 
-        // Wait a frame to ensure video is ready
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        // Mirror capture for front camera so output matches the live preview
+        if (isFrontCamera) {
+            ctx.translate(TARGET_W, 0)
+            ctx.scale(-1, 1)
+        }
 
-        const W = canvas.width, H = canvas.height
+        ctx.drawImage(video, sx, sy, sw, sh, 0, 0, TARGET_W, TARGET_H)
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+
+        const W = TARGET_W, H = TARGET_H
         const now = new Date()
         const dateStr = now.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
         const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
@@ -359,14 +378,13 @@ export function UserReport() {
                             <div className="report-camera-panel">
                                 {!capturedImage ? (
                                     <div className="report-camera-box">
-                                        <div className="report-camera-viewport" style={{ aspectRatio }}>
+                                        <div className="report-camera-viewport">
                                             <video
                                                 ref={videoRef}
                                                 autoPlay
                                                 playsInline
                                                 muted
-                                                onLoadedMetadata={handleLoadedMetadata}
-                                                className="report-video"
+                                                className={`report-video${isFrontCamera ? ' mirrored' : ''}`}
                                             />
 
                                             {/* GPS badge */}
