@@ -315,8 +315,7 @@ export function UserReport() {
                     </>
                 ) : (
                     <div className="pwa-ready">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h2 style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{selectedSite?.site_name}</h2>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                             <button className="btn-ghost" style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }} onClick={closeCamera}>Change Site</button>
                         </div>
 
