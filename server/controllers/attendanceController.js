@@ -103,29 +103,34 @@ exports.getStats = async (req, res) => {
 // DELETE /api/admin/attendance/reset
 exports.resetAttendance = async (req, res) => {
     try {
-        const { employee_id, site_id, date } = req.query
-        if (!employee_id || !date) {
-            return res.status(400).json({ error: 'employee_id and date are required.' })
+        const { id, employee_id, site_id, date } = req.query
+
+        let record = null;
+        if (id) {
+            record = await Attendance.findById(id)
+        } else if (employee_id && date) {
+            record = await Attendance.findOne({ employee_id, date, site_id: site_id || null })
         }
 
-        // 1. Delete matching Reports for this day/site
-        const Report = require('../models/Report')
+        if (!record) {
+            return res.status(404).json({ error: 'Attendance record not found.' })
+        }
 
+        // 1. Delete matching Reports for this specific context
+        const Report = require('../models/Report')
         let reportQuery = {
-            employee_id, report_time: {
-                $gte: new Date(date),
-                $lt: new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000)
+            employee_id: record.employee_id,
+            report_time: {
+                $gte: new Date(record.date),
+                $lt: new Date(new Date(record.date).getTime() + 24 * 60 * 60 * 1000)
             }
         }
-        if (site_id) reportQuery.site_id = site_id
+        if (record.site_id) reportQuery.site_id = record.site_id
 
         await Report.deleteMany(reportQuery)
 
-        // 2. Delete matching Attendance record
-        let attQuery = { employee_id, date }
-        if (site_id) attQuery.site_id = site_id
-
-        await Attendance.deleteMany(attQuery)
+        // 2. Delete the specific Attendance record
+        await Attendance.findByIdAndDelete(record._id)
 
         res.json({ success: true, message: 'Reporting reset successfully. Employee can report again.' })
     } catch (err) {

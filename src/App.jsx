@@ -24,7 +24,14 @@ export default function App() {
     return (
       <div className="layout-auth">
         <LoginPage />
-        {toast && <Toast message={toast.message} type={toast.type} />}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onConfirm={toast.onConfirm}
+            onCancel={toast.onCancel}
+          />
+        )}
       </div>
     )
   }
@@ -34,7 +41,14 @@ export default function App() {
   return (
     <div className={`layout${isEmployee ? ' employee-view' : ''} pwa-startup`}>
       <Sidebar />
-      {toast && <Toast message={toast.message} type={toast.type} />}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onConfirm={toast.onConfirm}
+          onCancel={toast.onCancel}
+        />
+      )}
       <main className={`main-content${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isEmployee ? ' has-bottom-nav' : ''}`}>
         <div className="page-wrapper pwa-ready">
           <Routes>

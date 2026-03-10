@@ -287,13 +287,6 @@ export function UserReport() {
 
                 {step === 1 ? (
                     <>
-                        <h1 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.5rem' }}>
-                            {t('page.select_site')}
-                        </h1>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                            {t('label.choose_site')}
-                        </p>
-
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             {sites.length === 0 && (
                                 <div className="empty-state"><p>{t('empty.no_sites_active')}</p></div>
@@ -313,7 +306,7 @@ export function UserReport() {
                 ) : (
                     <div className="pwa-ready">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                            <h2 style={{ fontSize: '1.1rem' }}>{selectedSite?.site_name}</h2>
+                            <h2 style={{ fontSize: '1.1rem', color: 'var(--text-primary)' }}>{selectedSite?.site_name}</h2>
                             <button className="btn-ghost" style={{ padding: '0.4rem 0.75rem', fontSize: '0.75rem' }} onClick={closeCamera}>Change Site</button>
                         </div>
 

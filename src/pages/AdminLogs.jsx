@@ -36,14 +36,22 @@ export function AdminLogs() {
     }
 
     const handleDelete = async (rec) => {
-        if (!window.confirm(`Are you sure you want to reset report for ${rec.employee_name} on ${rec.date}? This will delete the attendance and any associated site reports for this day.`)) return;
-        try {
-            await client.delete(`/admin/attendance/reset?employee_id=${rec.employee_id}&date=${rec.date}${rec.site_id ? '&site_id=' + rec.site_id : ''}`);
-            showToast('Report reset successfully.');
-            load();
-        } catch (err) {
-            showToast(err.response?.data?.error || 'Failed to reset report.', 'error');
-        }
+        showToast(
+            `Reset report for ${rec.employee_name} on ${rec.date}?`,
+            'info',
+            {
+                onConfirm: async () => {
+                    try {
+                        await client.delete(`/admin/attendance/reset?id=${rec.id || rec._id}`);
+                        showToast('Report reset successfully.', 'success');
+                        load();
+                    } catch (err) {
+                        showToast(err.response?.data?.error || 'Failed to reset report.', 'error');
+                    }
+                },
+                onCancel: () => showToast(null)
+            }
+        )
     }
 
     useEffect(() => { load() }, [])

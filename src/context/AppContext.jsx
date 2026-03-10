@@ -60,9 +60,12 @@ export function AppProvider({ children }) {
         setSidebarCollapsedState(val)
     }, [])
 
-    const showToast = useCallback((message, type = 'success') => {
-        setToast({ message, type, id: Date.now() })
-        setTimeout(() => setToast(null), 3200)
+    const showToast = useCallback((message, type = 'success', options = {}) => {
+        const id = Date.now()
+        setToast({ message, type, id, ...options })
+        if (!options.onConfirm) {
+            setTimeout(() => setToast(current => current?.id === id ? null : current), 3200)
+        }
     }, [])
 
     // ── Auth ──────────────────────────────────────────────────
