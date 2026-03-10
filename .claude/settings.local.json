@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(ipconfig)",
+      "Bash(node server.js)",
+      "Bash(cmd /c \"netstat -ano | findstr :4000\")",
+      "Bash(cmd /c \"taskkill /IM node.exe /F 2>&1 && taskkill /IM nodemon /F 2>&1 && ping -n 3 127.0.0.1 > nul\")",
+      "Bash(cmd /c \"wmic process where name=''node.exe'' get processid,commandline 2>&1\")"
+    ]
+  }
+}

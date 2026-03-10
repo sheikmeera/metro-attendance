@@ -60,26 +60,32 @@ export function UserReport() {
         try {
             if (streamRef.current) stopCamera()
 
+            // Refresh device list to ensure labels are available after permission grant
+            const items = await navigator.mediaDevices.enumerateDevices()
+            const videoInputs = items.filter(i => i.kind === 'videoinput')
+            setDevices(videoInputs)
+
             const constraints = {
                 video: deviceId
-                    ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-                    : { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+                    ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+                    : { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
                 audio: false,
             }
 
             const stream = await navigator.mediaDevices.getUserMedia(constraints)
             streamRef.current = stream
+
             if (videoRef.current) {
                 videoRef.current.srcObject = stream
-                videoRef.current.onloadedmetadata = () => {
-                    videoRef.current.play()
-                }
+                // Ensure playsInline is set for iOS
+                videoRef.current.setAttribute('playsinline', true)
+                videoRef.current.play().catch(e => console.error("Play failed:", e))
             }
 
-            // Update active device ID if not set
+            // Update active device ID
             if (stream.getVideoTracks().length > 0) {
                 const settings = stream.getVideoTracks()[0].getSettings()
-                setActiveDeviceId(settings.deviceId)
+                setActiveDeviceId(settings.deviceId || deviceId)
             }
 
             setCameraActive(true)
@@ -89,8 +95,15 @@ export function UserReport() {
         }
     }
 
-    const switchCamera = () => {
-        if (devices.length < 2) return
+    const switchCamera = async () => {
+        if (devices.length < 2) {
+            // Try to refresh devices if list is small
+            const items = await navigator.mediaDevices.enumerateDevices()
+            const videoInputs = items.filter(i => i.kind === 'videoinput')
+            setDevices(videoInputs)
+            if (videoInputs.length < 2) return showToast('No other cameras found', 'info')
+        }
+
         const currentIndex = devices.findIndex(d => d.deviceId === activeDeviceId)
         const nextIndex = (currentIndex + 1) % devices.length
         const nextDevice = devices[nextIndex]
@@ -110,10 +123,12 @@ export function UserReport() {
         const canvas = canvasRef.current
         if (!video || !canvas) return
 
-        // High resolution capture
-        canvas.width = video.videoWidth || 1920
-        canvas.height = video.videoHeight || 1080
+        // Use video dimensions or defaults
+        canvas.width = video.videoWidth || 1280
+        canvas.height = video.videoHeight || 960
         const ctx = canvas.getContext('2d', { alpha: false })
+
+        // Wait a frame to ensure video is ready
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
         const W = canvas.width, H = canvas.height
@@ -303,41 +318,29 @@ export function UserReport() {
                         </div>
 
                         {!capturedImage ? (
-                            <div className="camera-modal">
-                                <div className="camera-preview-container">
-                                    <video ref={videoRef} autoPlay playsInline muted className="camera-preview" />
-
-                                    <div className="camera-controls-overlay">
-                                        <div className="camera-top-bar">
-                                            <button className="btn-camera-action" onClick={closeCamera}>✕</button>
-                                            <div style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 600 }}>{selectedSite?.site_name}</div>
-                                            <button className="btn-camera-action" onClick={switchCamera}>
-                                                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none"><path d="M23 4v6h-6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1.5 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                                            </button>
-                                        </div>
-
-                                        <div className="camera-bottom-bar">
-                                            <div style={{ width: 48 }}></div> {/* Spacer */}
-                                            <button className="btn-capture" onClick={capturePhoto}>
-                                                <div className="btn-capture-inner"></div>
-                                            </button>
-                                            <div style={{ width: 48 }}></div> {/* Spacer */}
-                                        </div>
-                                    </div>
+                            <div className="inline-camera-container anim-in">
+                                <div className="inline-camera-preview-wrap">
+                                    <video ref={videoRef} autoPlay playsInline muted className="inline-video" />
 
                                     {gpsCoords && (
-                                        <div className="gps-badge-overlay">
-                                            <MapPin size={12} color="#f97316" />
+                                        <div className="gps-badge-overlay-inline">
+                                            <MapPin size={10} color="#f97316" />
                                             <span>{gpsCoords.lat.toFixed(5)}, {gpsCoords.lng.toFixed(5)}</span>
                                         </div>
                                     )}
 
-                                    {gpsCoords && (
-                                        <div className="map-pip">
-                                            <img src={`${API_BASE}/map-tile?lat=${gpsCoords.lat}&lng=${gpsCoords.lng}&zoom=15`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 8, height: 8, borderRadius: '50%', background: '#ef4444', border: '1.5px solid #fff' }}></div>
-                                        </div>
-                                    )}
+                                    <div className="camera-actions-inline">
+                                        <button className="btn-camera-flip" onClick={switchCamera} title="Switch Camera">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none"><path d="M23 4v6h-6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1.5 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="camera-footer-inline">
+                                    <button className="btn-capture-inline" onClick={capturePhoto}>
+                                        <Camera size={24} />
+                                        <span>Capture Site Photo</span>
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -365,6 +368,7 @@ export function UserReport() {
                     </div>
                 )}
             </div>
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
     )
 }

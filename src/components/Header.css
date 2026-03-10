@@ -33,7 +33,7 @@
 .header-logo-wrap {
     width: 38px;
     height: 38px;
-    background: #ffffff;
+    background: transparent;
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -43,9 +43,9 @@
 }
 
 .header-logo {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .header-brand-text {

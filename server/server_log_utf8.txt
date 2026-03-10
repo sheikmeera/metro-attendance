@@ -1,0 +1,46 @@
+﻿[DB] Attempting to connect to MongoDB (Masked: mongodb+srv://sheiks...)
+
+≡ƒÜÇ Metro Server running on http://0.0.0.0:4000
+   Uploads served at: http://0.0.0.0:4000/uploads
+   Health check: http://0.0.0.0:4000/api/health
+
+[DB] Connected to MongoDB via Mongoose.
+[Seed] Default departments validated.
+[Automation] Cron jobs initialized.
+[2026-03-09T05:07:10.986Z] POST /api/login
+Body: {
+  "identifier": "admin@metro.com",
+  "password": "admin123"
+}
+[Auth] Attempting login for: admin@metro.com
+[Auth] Login successful: Administrator (admin)
+[2026-03-09T05:07:11.176Z] GET /api/admin/logs/daily
+[DailyLog] Calling generateDailyLog...
+[PDF] resolvePhoto: raw="https://res.cloudinary.com/dyo4bsuxj/image/upload/v1773028420/metro_reports/report_1773028420169_253738.jpg"
+[2026-03-09T05:07:11.364Z] GET /api/admin/employees
+[2026-03-09T05:07:11.409Z] GET /api/admin/logs/employee
+[PDF] fetchTile: lat=17.431288922036078, lng=78.38089597229379, zoom=15
+[PDF] fetchTile: URL="https://tile.openstreetmap.org/15/23518/14772.png"
+[PDF] resolvePhoto: raw="https://res.cloudinary.com/dyo4bsuxj/image/upload/v1772897532/metro_avatars/avatar_1772897532399.jpg"
+node : Uncaught Exception: Error 
+[ERR_STREAM_WRITE_AFTER_END]: write after end
+At line:1 char:1
++ node app.js > server_log.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Uncaught Exc 
+   ept...write after end:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    at write_ (node:_http_outgoing:900:11)
+    at ServerResponse.write (node:_http_outgoing:849:15)
+    at PDFDocument.ondata 
+(node:internal/streams/readable:1008:24)
+    at PDFDocument.emit (node:events:508:28)
+    at Readable.read 
+(node:internal/streams/readable:780:10)
+    at flow (node:internal/streams/readable:1286:53)
+    at resume_ (node:internal/streams/readable:1265:3)
+    at process.processTicksAndRejections 
+(node:internal/process/task_queues:89:21) {
+  code: 'ERR_STREAM_WRITE_AFTER_END'
+}
