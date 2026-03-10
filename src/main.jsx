@@ -9,6 +9,25 @@ import './i18n'
 
 import { registerSW } from 'virtual:pwa-register'
 
+// Force-clear old service workers and caches so new deployments reflect immediately
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    registrations.forEach(reg => {
+      reg.update() // tell SW to check for updates now
+    })
+  })
+  // Wipe old caches on load so stale assets don't persist
+  if ('caches' in window) {
+    caches.keys().then(names => {
+      names.forEach(name => {
+        if (name.includes('workbox') || name.includes('precache')) {
+          caches.delete(name)
+        }
+      })
+    })
+  }
+}
+
 registerSW({ immediate: true })
 
 ReactDOM.createRoot(document.getElementById('root')).render(
