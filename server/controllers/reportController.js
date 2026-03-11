@@ -195,23 +195,11 @@ exports.getAllReports = async (req, res) => {
     }
 }
 
-// DELETE /api/admin/report/:id — delete a single report (and matching attendance)
+// DELETE /api/admin/report/:id — delete a single report only
 exports.deleteReport = async (req, res) => {
     try {
         const report = await Report.findById(req.params.id)
         if (!report) return res.status(404).json({ error: 'Report not found.' })
-
-        // Also delete the matching attendance record for the same employee/date
-        const reportDate = new Date(report.report_time)
-        const istOffset = 5.5 * 60 * 60 * 1000
-        const istDate = new Date(reportDate.getTime() + istOffset)
-        const dateStr = istDate.toISOString().split('T')[0]
-
-        await Attendance.deleteOne({
-            employee_id: report.employee_id,
-            date: dateStr,
-            site_id: report.site_id || null
-        })
 
         await Report.findByIdAndDelete(req.params.id)
 
